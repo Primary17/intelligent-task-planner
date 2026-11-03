@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.db
+*.db-shm
+*.db-wal
+src/TaskPlanner.Api/Data/
+.idea/
+.vs/
+*.swp
