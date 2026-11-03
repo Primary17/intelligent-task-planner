@@ -43,7 +43,6 @@ public static class DependencyInjection
                 options.UseSqlite(connectionString));
         }
 
-        services.AddScoped<Lab1ScenarioService>();
         services.AddScoped<IStudyTaskService, StudyTaskService>();
         services.AddScoped<IDisciplineService, DisciplineService>();
         return services;

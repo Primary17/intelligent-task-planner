@@ -1,6 +1,6 @@
 # Task Planner
 
-Бекенд персонального **STEM-планувальника навчальних завдань** (дисципліни, дедлайни, доступний час, сесії розкладу) у рамках курсу **«Мультиплатформне програмування»**. Репозиторій одночасно закриває лабораторні роботи та базу для семестрового проєкту — деталі предметної області в [`Planner.md`](Planner.md).
+**STEM-планувальник навчальних завдань** (дисципліни, дедлайни, доступний час, сесії розкладу) у рамках курсу **«Мультиплатформне програмування»**. Репозиторій одночасно закриває лабораторні роботи та проєкт — деталі предметної області в [`CONCEPT.md`](CONCEPT.md).
 
 **Поточний стан:** реалізовано **ЛР1** (EF Core, SQLite/PostgreSQL), **ЛР2** (REST API, DTO, сервіси), **ЛР3** (JWT, ролі, ізоляція даних). Далі — MAUI-клієнт (ЛР4) і Docker (ЛР5).
 
@@ -25,10 +25,7 @@
 ```
 TaskPlanner/
 ├── TaskPlanner.sln
-├── Planner.md                 # STEM: сценарії та модулі
-├── commands/                  # приклади curl для лабораторних
-├── reports/                   # артефакти прогонів (за потреби)
-├── МПП_ЛР_*                   # методички та звіти
+├── CONCEPT.md                 # STEM: сценарії та модулі
 └── src/
     ├── TaskPlanner.Domain/       # сутності, enum (без EF)
     ├── TaskPlanner.Application/  # DTO, інтерфейси сервісів, validators
@@ -154,28 +151,10 @@ JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database updat
 | Завдання   | `/api/tasks`       | JWT (власні завдання; admin — усі)     |
 | Дисципліни | `/api/disciplines` | JWT (`userId` з token, не з body)      |
 | Admin      | `/api/admin/users` | JWT + роль **Admin**                   |
-| Demo ЛР1   | `/api/lab1`        | JWT + **Admin**                        |
 
-**Query для списків:** фільтрація, `search`, `sort` — див. Swagger або [`commands/lab2-api-demo.txt`](commands/lab2-api-demo.txt).
+**Query для списків:** фільтрація, `search`, `sort` — див. Swagger.
 
 **Відхилення від методички ЛР2:** замість шаблонного `/api/resources` використовується `/api/tasks` — зрозуміліше для STEM і майбутнього MAUI-клієнта (обґрунтування — у звітах ЛР2).
-
----
-
-## Демо-сценарії
-
-| Файл | Зміст |
-|------|--------|
-| [`commands/lab1-demo.txt`](commands/lab1-demo.txt) | EF demo (`--demo`), SQLite/PG |
-| [`commands/lab2-api-demo.txt`](commands/lab2-api-demo.txt) | CRUD через HTTP |
-| [`commands/lab3-auth-demo.txt`](commands/lab3-auth-demo.txt) | register, login, Bearer, admin |
-
-Консольний demo ЛР1 (JSON-звіт EF):
-
-```bash
-Database__Provider=Sqlite dotnet run --no-launch-profile \
-  --project src/TaskPlanner.Api/TaskPlanner.Api.csproj -- --demo
-```
 
 ---
 
@@ -184,7 +163,8 @@ Database__Provider=Sqlite dotnet run --no-launch-profile \
 | Email | Пароль | Роль |
 |-------|--------|------|
 | `admin@taskplanner.local` | `Admin123!` | Admin (seed) |
-| `demo@taskplanner.local` | `Demo1234!` | User (після `POST /api/lab1/scenario` під admin) |
+
+Студентські акаунти створюйте через `POST /api/auth/register`.
 
 Пароль admin у production **не** використовуйте; змініть seed або створюйте admin вручну.
 
