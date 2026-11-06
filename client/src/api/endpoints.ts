@@ -2,7 +2,8 @@ import { request } from './http';
 import type {
   AuthResponse, AvailabilityException, AvailabilityExceptionInput, AvailabilityWindow,
   AvailabilityWindowInput, CreateSessionInput, CreateTaskInput, Discipline, DisciplineInput, EffectiveDay,
-  StudySession, StudyTask, TaskFilters, UpdateSessionInput, UpdateTaskInput, UserProfile,
+  CapacityReport, ChangePasswordInput, StudySession, StudyTask, TaskFilters, UpdateProfileInput,
+  UpdateSessionInput, UpdateTaskInput, UserProfile,
 } from './types';
 
 const post = <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body });
@@ -23,6 +24,8 @@ export const authApi = {
   register: (email: string, displayName: string, password: string) =>
     post<AuthResponse>('/auth/register', { email, displayName, password }),
   me: () => request<UserProfile>('/auth/me'),
+  updateProfile: (input: UpdateProfileInput) => put<UserProfile>('/auth/me', input),
+  changePassword: (input: ChangePasswordInput) => post<void>('/auth/change-password', input),
 };
 
 export const disciplinesApi = {
@@ -63,4 +66,9 @@ export const sessionsApi = {
   create: (input: CreateSessionInput) => post<StudySession>('/sessions', input),
   update: (id: string, input: UpdateSessionInput) => put<StudySession>(`/sessions/${id}`, input),
   remove: (id: string) => del(`/sessions/${id}`),
+};
+
+export const planningApi = {
+  capacity: (utcOffsetMinutes: number) =>
+    request<CapacityReport>(`/planning/capacity${buildQuery({ utcOffsetMinutes: String(utcOffsetMinutes) })}`),
 };
