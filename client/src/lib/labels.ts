@@ -1,4 +1,4 @@
-import type { ExceptionKind, Priority, TaskStatus } from '../api/types';
+import type { ExceptionKind, Priority, SessionStatus, TaskStatus } from '../api/types';
 
 export const PRIORITY_LABELS: Record<Priority, string> = {
   Low: 'Низький',
@@ -20,3 +20,11 @@ export const EXCEPTION_LABELS: Record<ExceptionKind, string> = {
 
 export const PRIORITIES = Object.keys(PRIORITY_LABELS) as Priority[];
 export const STATUSES = Object.keys(STATUS_LABELS) as TaskStatus[];
+
+export const SESSION_STATUS_LABELS: Record<SessionStatus, string> = {
+  Planned: 'Заплановано',
+  Completed: 'Виконано',
+  Missed: 'Пропущено',
+};
+
+export const SESSION_STATUSES = Object.keys(SESSION_STATUS_LABELS) as SessionStatus[];
