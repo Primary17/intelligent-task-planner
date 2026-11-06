@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { availabilityApi, disciplinesApi, tasksApi } from '../api/endpoints';
+import { availabilityApi, disciplinesApi, sessionsApi, tasksApi } from '../api/endpoints';
+import type { StudySession } from '../api/types';
 import { DAYS, addDays, formatDayMonth, formatMinutes, parseUtc, startOfWeek, timeToMinutes, toDateKey } from '../lib/dates';
 import { ErrorBanner, Loading } from '../components/Feedback';
+import { SESSION_STATUS_LABELS } from '../lib/labels';
+import { spanOnDay } from '../lib/sessions';
 import { useLoad } from '../lib/useLoad';
+import { NewSessionModal, SessionModal } from './SessionModals';
 
 const HOUR_PX = 44;
 
@@ -17,6 +21,12 @@ export function CalendarPage() {
   const availability = useLoad(() => availabilityApi.effective(from, to), [from, to]);
   const tasks = useLoad(() => tasksApi.list(), []);
   const disciplines = useLoad(() => disciplinesApi.list(), []);
+  const rangeFrom = days[0].toISOString();
+  const rangeTo = addDays(days[6], 1).toISOString();
+  const sessions = useLoad(() => sessionsApi.list(rangeFrom, rangeTo), [rangeFrom, rangeTo]);
+
+  const [editing, setEditing] = useState<StudySession | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const colorOf = (id: string) => disciplines.data?.find((d) => d.id === id)?.color ?? '#94a3b8';
 
@@ -33,8 +43,30 @@ export function CalendarPage() {
         total += e - s;
       }
     }
+    for (const session of sessions.data ?? []) {
+      for (const day of days) {
+        const span = spanOnDay(session.startAtUtc, session.endAtUtc, day);
+        if (!span) continue;
+        start = Math.min(start, Math.floor(span.start / 60));
+        end = Math.max(end, Math.ceil(span.end / 60));
+      }
+    }
     return { startHour: start, endHour: end, totalMinutes: total };
-  }, [availability.data]);
+  }, [availability.data, sessions.data, days]);
+
+  const plannedMinutes = (sessions.data ?? [])
+    .filter((s) => s.status !== 'Missed')
+    .reduce((sum, s) => sum + s.plannedMinutes, 0);
+
+  const openTasks = (tasks.data ?? []).filter((t) => t.status !== 'Completed');
+  const defaultStart = `${toDateKey(days.some((d) => toDateKey(d) === todayKey) ? new Date() : days[0])}T18:00`;
+
+  const reloadAll = () => {
+    sessions.reload();
+    tasks.reload();
+    setEditing(null);
+    setAdding(false);
+  };
 
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
   const bodyHeight = hours.length * HOUR_PX;
@@ -54,6 +86,7 @@ export function CalendarPage() {
       <div className="page-header">
         <h1>Календар</h1>
         <div className="week-nav">
+          <button className="btn btn-primary" onClick={() => setAdding(true)}>+ Сесія</button>
           <button className="btn btn-ghost" onClick={() => setWeekStart(addDays(weekStart, -7))}>←</button>
           <button className="btn btn-ghost" onClick={() => setWeekStart(startOfWeek(new Date()))}>Сьогодні</button>
           <button className="btn btn-ghost" onClick={() => setWeekStart(addDays(weekStart, 7))}>→</button>
@@ -61,12 +94,12 @@ export function CalendarPage() {
       </div>
       <p className="muted">
         {formatDayMonth(days[0])} – {formatDayMonth(days[6])}. Доступно для навчання:{' '}
-        <strong>{formatMinutes(totalMinutes)}</strong>
+        <strong>{formatMinutes(totalMinutes)}</strong>. Заплановано: <strong>{formatMinutes(plannedMinutes)}</strong>
         {totalMinutes === 0 && !availability.loading && (
           <> — <Link to="/availability">налаштуйте доступний час</Link></>
         )}
       </p>
-      <ErrorBanner message={availability.error ?? tasks.error ?? disciplines.error} />
+      <ErrorBanner message={availability.error ?? tasks.error ?? disciplines.error ?? sessions.error} />
       {availability.loading && !availability.data && <Loading />}
 
       {availability.data && (
@@ -126,6 +159,28 @@ export function CalendarPage() {
                       </div>
                     );
                   })}
+                  {(sessions.data ?? []).map((session) => {
+                    const span = spanOnDay(session.startAtUtc, session.endAtUtc, day);
+                    if (!span) return null;
+                    const color = colorOf(session.disciplineId);
+                    return (
+                      <button
+                        key={session.id}
+                        type="button"
+                        className={`session session-${session.status.toLowerCase()}`}
+                        style={{
+                          top: offset(span.start),
+                          height: Math.max(((span.end - span.start) / 60) * HOUR_PX, 18),
+                          borderLeftColor: color,
+                          background: `${color}33`,
+                        }}
+                        title={`${session.disciplineName}: ${session.taskTitle} (${SESSION_STATUS_LABELS[session.status]})`}
+                        onClick={() => setEditing(session)}
+                      >
+                        {session.isLocked && '🔒 '}{session.taskTitle}
+                      </button>
+                    );
+                  })}
                 </div>
               );
             })}
@@ -137,7 +192,13 @@ export function CalendarPage() {
         <span><i className="legend-box slot" /> Доступний час</span>
         <span><i className="legend-box slot slot-custom" /> Змінені години (виняток)</span>
         <span><i className="legend-box deadline" /> Дедлайн завдання (колір дисципліни)</span>
+        <span><i className="legend-box session" /> Навчальна сесія (клік — відмітити виконання)</span>
       </div>
+
+      {editing && <SessionModal session={editing} onClose={() => setEditing(null)} onSaved={reloadAll} />}
+      {adding && (
+        <NewSessionModal tasks={openTasks} defaultStart={defaultStart} onClose={() => setAdding(false)} onSaved={reloadAll} />
+      )}
     </section>
   );
 }
