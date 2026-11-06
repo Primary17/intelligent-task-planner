@@ -69,6 +69,43 @@ public sealed class AuthService : IAuthService
         return user is null ? null : MapProfile(user);
     }
 
+    public async Task<UserProfileDto?> UpdateProfileAsync(
+        Guid userId,
+        UpdateProfileRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user is null)
+        {
+            return null;
+        }
+
+        user.DisplayName = request.DisplayName.Trim();
+        await _db.SaveChangesAsync(cancellationToken);
+        return MapProfile(user);
+    }
+
+    public async Task<bool> ChangePasswordAsync(
+        Guid userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user is null)
+        {
+            return false;
+        }
+
+        if (!_passwordHasher.Verify(user, request.CurrentPassword, user.PasswordHash))
+        {
+            throw new ServiceValidationException("Current password is incorrect.");
+        }
+
+        user.PasswordHash = _passwordHasher.Hash(user, request.NewPassword);
+        await _db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<IReadOnlyList<AdminUserListItemDto>> ListUsersForAdminAsync(
         CancellationToken cancellationToken = default)
     {
