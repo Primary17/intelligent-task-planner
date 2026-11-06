@@ -3,6 +3,7 @@ export type DayName =
 export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 export type TaskStatus = 'NotStarted' | 'InProgress' | 'Completed';
 export type ExceptionKind = 'Unavailable' | 'CustomHours';
+export type SessionStatus = 'Planned' | 'Completed' | 'Missed';
 
 export interface UserProfile {
   id: string;
@@ -111,4 +112,33 @@ export interface EffectiveDay {
   date: string;
   source: 'Weekly' | ExceptionKind;
   intervals: TimeInterval[];
+}
+
+export interface StudySession {
+  id: string;
+  studyTaskId: string;
+  taskTitle: string;
+  disciplineId: string;
+  disciplineName: string;
+  startAtUtc: string;
+  endAtUtc: string;
+  plannedMinutes: number;
+  actualMinutes: number | null;
+  status: SessionStatus;
+  isLocked: boolean;
+}
+
+export interface CreateSessionInput {
+  studyTaskId: string;
+  startAtUtc: string;
+  endAtUtc: string;
+  isLocked: boolean;
+}
+
+export interface UpdateSessionInput {
+  startAtUtc: string;
+  endAtUtc: string;
+  status: SessionStatus;
+  actualMinutes: number | null;
+  isLocked: boolean;
 }

@@ -110,9 +110,17 @@ tr.done .task-title { text-decoration: line-through; color: var(--muted); }
 .slot { position: absolute; left: 3px; right: 3px; background: #c7d2fe; border: 1px solid #a5b4fc; border-radius: 6px; font-size: .75rem; padding: .15rem .35rem; color: #312e81; overflow: hidden; }
 .slot-custom { background: #fde68a; border-color: #fcd34d; color: #78350f; }
 .cal-note { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-size: .75rem; color: var(--muted); }
+.session { position: absolute; left: 12px; right: 4px; z-index: 2; border: 1px solid #cbd5e1; border-left: 4px solid #6366f1; border-radius: 6px; padding: .1rem .35rem; font: inherit; font-size: .75rem; line-height: 1.25; text-align: left; color: var(--text); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session:hover { filter: brightness(.96); }
+.session-completed { opacity: .65; text-decoration: line-through; }
+.session-missed { opacity: .55; border-style: dashed; }
+.session-title { margin: 0; }
+.check { flex-direction: row; align-items: center; gap: .5rem; color: var(--text); }
+.check input { width: auto; }
 .legend { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-top: .75rem; }
 .legend-box { display: inline-block; position: static; width: 14px; height: 14px; vertical-align: middle; margin-right: .3rem; padding: 0; }
 .legend-box.deadline { border-left: 4px solid #6366f1; background: #6366f122; }
+.legend-box.session { border: 1px solid #cbd5e1; border-left: 4px solid #6366f1; border-radius: 4px; background: #6366f133; }
 
 @media (max-width: 800px) {
   .filters { grid-template-columns: 1fr 1fr; }

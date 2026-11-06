@@ -1,8 +1,8 @@
 import { request } from './http';
 import type {
   AuthResponse, AvailabilityException, AvailabilityExceptionInput, AvailabilityWindow,
-  AvailabilityWindowInput, CreateTaskInput, Discipline, DisciplineInput, EffectiveDay,
-  StudyTask, TaskFilters, UpdateTaskInput, UserProfile,
+  AvailabilityWindowInput, CreateSessionInput, CreateTaskInput, Discipline, DisciplineInput, EffectiveDay,
+  StudySession, StudyTask, TaskFilters, UpdateSessionInput, UpdateTaskInput, UserProfile,
 } from './types';
 
 const post = <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body });
@@ -56,4 +56,11 @@ export const availabilityApi = {
 
   effective: (from: string, to: string) =>
     request<EffectiveDay[]>(`/availability/effective${buildQuery({ from, to })}`),
+};
+
+export const sessionsApi = {
+  list: (from?: string, to?: string) => request<StudySession[]>(`/sessions${buildQuery({ from, to })}`),
+  create: (input: CreateSessionInput) => post<StudySession>('/sessions', input),
+  update: (id: string, input: UpdateSessionInput) => put<StudySession>(`/sessions/${id}`, input),
+  remove: (id: string) => del(`/sessions/${id}`),
 };
