@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { RequireAuth } from './components/RequireAuth';
 import { AvailabilityPage } from './pages/AvailabilityPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
+import { ProfilePage } from './pages/ProfilePage';
 import { CalendarPage } from './pages/CalendarPage';
 import { DisciplinesPage } from './pages/DisciplinesPage';
 import { TasksPage } from './pages/TasksPage';
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="tasks" element={<TasksPage />} />
         <Route path="disciplines" element={<DisciplinesPage />} />
         <Route path="availability" element={<AvailabilityPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
