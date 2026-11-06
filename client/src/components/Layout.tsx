@@ -23,7 +23,7 @@ export function Layout() {
           ))}
         </nav>
         <div className="user">
-          <span title={user?.email}>{user?.displayName}</span>
+          <NavLink to="/profile" className="user-link" title={user?.email}>{user?.displayName}</NavLink>
           <button type="button" className="btn btn-ghost" onClick={logout}>Вийти</button>
         </div>
       </header>
