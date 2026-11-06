@@ -142,3 +142,35 @@ export interface UpdateSessionInput {
   actualMinutes: number | null;
   isLocked: boolean;
 }
+
+export type CapacityStatus = 'Ok' | 'Shortfall' | 'Overdue';
+
+export interface TaskCapacity {
+  taskId: string;
+  title: string;
+  disciplineId: string;
+  disciplineName: string;
+  deadlineUtc: string;
+  remainingMinutes: number;
+  plannedMinutes: number;
+  unplannedMinutes: number;
+  availableMinutes: number;
+  requiredMinutes: number;
+  shortfallMinutes: number;
+  status: CapacityStatus;
+}
+
+export interface CapacityReport {
+  generatedAtUtc: string;
+  totalShortfallMinutes: number;
+  tasks: TaskCapacity[];
+}
+
+export interface UpdateProfileInput {
+  displayName: string;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
