@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { availabilityApi, disciplinesApi, sessionsApi, tasksApi } from '../api/endpoints';
+import { availabilityApi, disciplinesApi, planningApi, sessionsApi, tasksApi } from '../api/endpoints';
 import type { StudySession } from '../api/types';
-import { DAYS, addDays, formatDayMonth, formatMinutes, parseUtc, startOfWeek, timeToMinutes, toDateKey } from '../lib/dates';
+import {
+  DAYS, addDays, formatDayMonth, formatMinutes, localUtcOffsetMinutes, parseUtc, startOfWeek, timeToMinutes, toDateKey,
+} from '../lib/dates';
+import { CapacityAlert } from '../components/CapacityAlert';
 import { ErrorBanner, Loading } from '../components/Feedback';
 import { SESSION_STATUS_LABELS } from '../lib/labels';
 import { spanOnDay } from '../lib/sessions';
@@ -24,6 +27,8 @@ export function CalendarPage() {
   const rangeFrom = days[0].toISOString();
   const rangeTo = addDays(days[6], 1).toISOString();
   const sessions = useLoad(() => sessionsApi.list(rangeFrom, rangeTo), [rangeFrom, rangeTo]);
+
+  const capacity = useLoad(() => planningApi.capacity(localUtcOffsetMinutes()), []);
 
   const [editing, setEditing] = useState<StudySession | null>(null);
   const [adding, setAdding] = useState(false);
@@ -64,6 +69,7 @@ export function CalendarPage() {
   const reloadAll = () => {
     sessions.reload();
     tasks.reload();
+    capacity.reload();
     setEditing(null);
     setAdding(false);
   };
@@ -100,6 +106,7 @@ export function CalendarPage() {
         )}
       </p>
       <ErrorBanner message={availability.error ?? tasks.error ?? disciplines.error ?? sessions.error} />
+      <CapacityAlert report={capacity.data} />
       {availability.loading && !availability.data && <Loading />}
 
       {availability.data && (
