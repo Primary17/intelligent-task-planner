@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { disciplinesApi, tasksApi } from '../api/endpoints';
+import { disciplinesApi, planningApi, tasksApi } from '../api/endpoints';
 import { errorMessage } from '../api/http';
 import type { Discipline, Priority, StudyTask, TaskFilters, TaskStatus } from '../api/types';
 import { EmptyState, ErrorBanner, Loading } from '../components/Feedback';
+import { CapacityAlert } from '../components/CapacityAlert';
 import { Modal } from '../components/Modal';
 import {
-  defaultDeadlineInput, formatDateTime, formatMinutes, fromLocalInput, hoursToMinutes, minutesToHours,
-  parseUtc, toLocalInput,
+  defaultDeadlineInput, formatDateTime, formatMinutes, fromLocalInput, hoursToMinutes, localUtcOffsetMinutes,
+  minutesToHours, parseUtc, toLocalInput,
 } from '../lib/dates';
 import { PRIORITIES, PRIORITY_LABELS, STATUSES, STATUS_LABELS } from '../lib/labels';
 import { useLoad } from '../lib/useLoad';
@@ -41,6 +42,9 @@ export function TasksPage() {
     [debouncedSearch, disciplineId, status, minPriority, sort],
   );
 
+  const capacity = useLoad(() => planningApi.capacity(localUtcOffsetMinutes()), []);
+  const capacityByTask = new Map((capacity.data?.tasks ?? []).map((t) => [t.taskId, t]));
+
   const [editing, setEditing] = useState<StudyTask | 'new' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -59,6 +63,7 @@ export function TasksPage() {
       });
       setActionError(null);
       tasks.reload();
+      capacity.reload();
     } catch (e) {
       setActionError(errorMessage(e));
     }
@@ -70,6 +75,7 @@ export function TasksPage() {
       await tasksApi.remove(task.id);
       setActionError(null);
       tasks.reload();
+      capacity.reload();
     } catch (e) {
       setActionError(errorMessage(e));
     }
@@ -112,6 +118,7 @@ export function TasksPage() {
       </div>
 
       <ErrorBanner message={tasks.error ?? disciplines.error ?? actionError} />
+      <CapacityAlert report={capacity.data} />
       {tasks.loading && !tasks.data && <Loading />}
       {tasks.data && tasks.data.length === 0 && !noDisciplines && <EmptyState>Завдань за цими умовами немає.</EmptyState>}
 
@@ -136,7 +143,14 @@ export function TasksPage() {
                         {task.disciplineName}
                       </div>
                     </td>
-                    <td className={overdue ? 'overdue' : ''}>{formatDateTime(task.deadlineUtc)}</td>
+                    <td className={overdue ? 'overdue' : ''}>
+                      {formatDateTime(task.deadlineUtc)}
+                      {capacityByTask.get(task.id)?.status === 'Shortfall' && (
+                        <div className="small shortfall">
+                          Не вистачає {formatMinutes(capacityByTask.get(task.id)!.shortfallMinutes)}
+                        </div>
+                      )}
+                    </td>
                     <td><span className={`badge badge-${task.priority}`}>{PRIORITY_LABELS[task.priority]}</span></td>
                     <td>{task.complexity}/5</td>
                     <td className="progress-cell">
@@ -169,6 +183,7 @@ export function TasksPage() {
           onSaved={() => {
             setEditing(null);
             tasks.reload();
+            capacity.reload();
           }}
         />
       )}
