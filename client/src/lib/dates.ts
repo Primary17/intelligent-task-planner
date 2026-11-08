@@ -45,6 +45,8 @@ export const shortTime = (time: string) => time.slice(0, 5);
 
 export const toApiTime = (time: string) => (time.length === 5 ? `${time}:00` : time);
 
+export const localUtcOffsetMinutes = () => -new Date().getTimezoneOffset();
+
 export function parseUtc(iso: string): Date {
   const hasZone = /(Z|[+-]\d{2}:?\d{2})$/.test(iso);
   return new Date(hasZone ? iso : `${iso}Z`);

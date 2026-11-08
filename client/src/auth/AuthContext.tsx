@@ -9,6 +9,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, displayName: string, password: string) => Promise<void>;
   logout: () => void;
+  setProfile: (profile: UserProfile) => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login: async (email, password) => accept(await authApi.login(email, password)),
     register: async (email, displayName, password) => accept(await authApi.register(email, displayName, password)),
     logout,
+    setProfile: setUser,
   }), [user, loading, accept, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
