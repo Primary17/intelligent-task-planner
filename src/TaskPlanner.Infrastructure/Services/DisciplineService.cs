@@ -33,12 +33,6 @@ public sealed class DisciplineService : IDisciplineService
             q = q.Where(d => d.UserId == query.UserId.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            q = q.Where(d => d.Name.Contains(query.Search) ||
-                             (d.Description != null && d.Description.Contains(query.Search)));
-        }
-
         q = query.Sort.ToLowerInvariant() switch
         {
             "color" => q.OrderBy(d => d.Color),
@@ -52,6 +46,14 @@ public sealed class DisciplineService : IDisciplineService
                 TaskCount = d.Tasks.Count
             })
             .ToListAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            items = items
+                .Where(x => x.Discipline.Name.Contains(query.Search, StringComparison.OrdinalIgnoreCase) ||
+                            (x.Discipline.Description?.Contains(query.Search, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
 
         return items
             .Select(x => Map(x.Discipline, x.TaskCount))
