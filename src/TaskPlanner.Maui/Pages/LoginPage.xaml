@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.LoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Task Planner"
+    x:DataType="vm:LoginViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,32" Spacing="8" VerticalOptions="Center">
+            <Label
+                FontAttributes="Bold"
+                FontSize="32"
+                SemanticProperties.HeadingLevel="Level1"
+                Text="Task Planner" />
+            <Label Style="{StaticResource Caption}" Text="Дисципліни, дедлайни й оцінки часу в одному місці." />
+
+            <Border Margin="0,20,0,0" Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Style="{StaticResource FieldLabel}" Text="Email" />
+                    <Entry Keyboard="Email" Placeholder="you@university.edu" Text="{Binding Email}" />
+
+                    <Label Style="{StaticResource FieldLabel}" Text="Пароль" />
+                    <Entry IsPassword="True" Placeholder="Пароль" Text="{Binding Password}" />
+
+                    <Label Margin="0,16,0,0" Style="{StaticResource Caption}" Text="Лише для нового облікового запису" />
+                    <Label Style="{StaticResource FieldLabel}" Text="Ім’я" />
+                    <Entry Placeholder="Як до вас звертатися" Text="{Binding DisplayName}" />
+
+                    <ActivityIndicator Margin="0,12,0,0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+                    <Button Margin="0,12,0,0" Command="{Binding LoginCommand}" Text="Увійти" />
+                    <Button Command="{Binding RegisterCommand}" Style="{StaticResource SecondaryButton}" Text="Створити обліковий запис" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

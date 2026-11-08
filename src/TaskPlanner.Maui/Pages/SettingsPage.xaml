@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Налаштування"
+    x:DataType="vm:SettingsViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="8">
+            <Label FontAttributes="Bold" FontSize="22" Text="Підключення" />
+            <Label
+                Style="{StaticResource Caption}"
+                Text="Для телефона вкажіть IP комп’ютера в тій самій мережі, наприклад http://192.168.0.10:5109/. 10.0.2.2 — лише емулятор Android." />
+
+            <Border Margin="0,8,0,0" Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Style="{StaticResource FieldLabel}" Text="Базова URL API" />
+                    <Entry Placeholder="http://192.168.0.10:5109/" Text="{Binding ApiBaseUrl}" />
+
+                    <HorizontalStackLayout Margin="0,8,0,0" Spacing="8">
+                        <Button Command="{Binding LoadDefaultsEmulatorCommand}" Style="{StaticResource SecondaryButton}" Text="Емулятор" />
+                        <Button Command="{Binding LoadDefaultsLocalhostCommand}" Style="{StaticResource SecondaryButton}" Text="localhost" />
+                    </HorizontalStackLayout>
+
+                    <Button Margin="0,8,0,0" Command="{Binding SaveCommand}" Text="Зберегти адресу" />
+                    <Label Text="{Binding Message}" TextColor="{StaticResource Primary}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Margin="0,20,0,0" Command="{Binding LogoutCommand}" Style="{StaticResource DangerButton}" Text="Вийти з облікового запису" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

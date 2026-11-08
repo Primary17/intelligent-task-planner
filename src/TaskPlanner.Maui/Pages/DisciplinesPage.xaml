@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.DisciplinesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:api="clr-namespace:TaskPlanner.Maui.Api"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Дисципліни"
+    x:DataType="vm:DisciplinesViewModel">
+
+    <Grid Padding="16,12" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Label
+                Style="{StaticResource Caption}"
+                Text="Потягніть список униз, щоб оновити"
+                VerticalOptions="Center" />
+            <Button Grid.Column="1" Command="{Binding CreateNewCommand}" Text="Додати" />
+        </Grid>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="4">
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="2">
+            <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="api:DisciplineDto">
+                            <Border Margin="0,6" Padding="14" Style="{StaticResource Card}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DisciplinesViewModel}}, Path=OpenDetailCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Border
+                                        BackgroundColor="{Binding Color}"
+                                        HeightRequest="48"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        VerticalOptions="Center"
+                                        WidthRequest="8" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label FontAttributes="Bold" FontSize="16" Text="{Binding Name}" />
+                                        <Label Style="{StaticResource Caption}" Text="{Binding Description}" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center">
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="18"
+                                            HorizontalTextAlignment="End"
+                                            Text="{Binding TaskCount}" />
+                                        <Label Style="{StaticResource Caption}" Text="завдань" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <Label
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center"
+                InputTransparent="True"
+                IsVisible="{Binding IsEmpty}"
+                Style="{StaticResource Caption}"
+                Text="Ще немає дисциплін.&#10;Додайте першу, щоб планувати завдання."
+                VerticalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>

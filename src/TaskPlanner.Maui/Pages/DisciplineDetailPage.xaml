@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.DisciplineDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Дисципліна"
+    x:DataType="vm:DisciplineDetailViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border
+                            BackgroundColor="{Binding Item.Color}"
+                            HeightRequest="48"
+                            StrokeShape="RoundRectangle 12"
+                            StrokeThickness="0"
+                            WidthRequest="48" />
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label FontAttributes="Bold" FontSize="22" Text="{Binding Item.Name}" />
+                            <Label Style="{StaticResource Caption}" Text="{Binding Item.TaskCount, StringFormat='{0} завдань'}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Text="{Binding Item.Description}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Command="{Binding EditCommand}" Text="Редагувати" />
+            <Button Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" Text="Видалити" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.TaskDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Завдання"
+    x:DataType="vm:TaskDetailViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label FontAttributes="Bold" FontSize="22" Text="{Binding Item.Title}" />
+                    <Label Style="{StaticResource Caption}" Text="{Binding Item.DisciplineName}" />
+                    <Label Text="{Binding Item.DeadlineUtc, Converter={StaticResource LocalDeadline}, StringFormat='Дедлайн: {0}'}" />
+                    <Label Text="{Binding Item.Status, Converter={StaticResource StatusLabel}, StringFormat='Статус: {0}'}" />
+                    <Label Text="{Binding Item.Priority, Converter={StaticResource PriorityLabel}, StringFormat='Пріоритет: {0}'}" />
+                    <Label Text="{Binding Item.Complexity, StringFormat='Складність: {0} з 5'}" />
+                    <Label Text="{Binding Item.EstimatedMinutes, StringFormat='Оцінка: {0} хв'}" />
+                    <Label Text="{Binding Item.ActualMinutes, StringFormat='Факт: {0} хв'}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Command="{Binding EditCommand}" Text="Редагувати" />
+            <Button Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" Text="Видалити" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

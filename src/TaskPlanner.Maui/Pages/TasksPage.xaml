@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.TasksPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:api="clr-namespace:TaskPlanner.Maui.Api"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Завдання"
+    x:DataType="vm:TasksViewModel">
+
+    <Grid Padding="16,12" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Label
+                Style="{StaticResource Caption}"
+                Text="Найближчі дедлайни зверху"
+                VerticalOptions="Center" />
+            <Button Grid.Column="1" Command="{Binding CreateNewCommand}" Text="Додати" />
+        </Grid>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="4">
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="2">
+            <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+                <CollectionView
+                    x:Name="TaskCollection"
+                    ItemsSource="{Binding Items}"
+                    SelectionChanged="OnTaskSelected"
+                    SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="api:StudyTaskDto">
+                            <Border Margin="0,6" Padding="14" Style="{StaticResource Card}">
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label FontAttributes="Bold" FontSize="16" Text="{Binding Title}" />
+                                        <Label
+                                            Grid.Column="1"
+                                            Style="{StaticResource Caption}"
+                                            Text="{Binding Priority, Converter={StaticResource PriorityLabel}}" />
+                                    </Grid>
+                                    <Label Style="{StaticResource Caption}" Text="{Binding DisciplineName}" />
+                                    <Label Text="{Binding DeadlineUtc, Converter={StaticResource LocalDeadline}, StringFormat='До {0}'}" />
+                                    <Label Text="{Binding Status, Converter={StaticResource StatusLabel}}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <Label
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center"
+                InputTransparent="True"
+                IsVisible="{Binding IsEmpty}"
+                Style="{StaticResource Caption}"
+                Text="Завдань ще немає.&#10;Створіть перше й оберіть дисципліну."
+                VerticalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>

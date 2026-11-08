@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.DisciplineEditPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Дисципліна"
+    x:DataType="vm:DisciplineEditViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="8">
+            <Label FontAttributes="Bold" FontSize="22" Text="{Binding Title}" />
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Style="{StaticResource FieldLabel}" Text="Назва" />
+                    <Entry Placeholder="Наприклад, Бази даних" Text="{Binding Name}" />
+
+                    <Label Style="{StaticResource FieldLabel}" Text="Опис" />
+                    <Editor AutoSize="TextChanges" Placeholder="Необов’язково" Text="{Binding Description}" />
+
+                    <Label Style="{StaticResource FieldLabel}" Text="Колір" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border
+                            BackgroundColor="{Binding Color}"
+                            HeightRequest="36"
+                            StrokeShape="RoundRectangle 8"
+                            StrokeThickness="0"
+                            VerticalOptions="Center"
+                            WidthRequest="36" />
+                        <Entry Grid.Column="1" Placeholder="#3B82F6" Text="{Binding Color}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Margin="0,8,0,0" Command="{Binding SaveCommand}" Text="Зберегти" />
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Text="Скасувати" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
