@@ -1,14 +1,21 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using TaskPlanner.Application;
 using TaskPlanner.Application.DTOs.StudyTasks;
 using TaskPlanner.Application.Services;
 using TaskPlanner.Domain.Entities;
+using TaskPlanner.Domain.Enums;
 using TaskPlanner.Infrastructure.Persistence;
 
 namespace TaskPlanner.Infrastructure.Services;
 
 public sealed class StudyTaskService : IStudyTaskService
 {
+    private static readonly Expression<Func<StudyTask, int>> PriorityRank = t =>
+        t.Priority == TaskPriority.Critical ? 3 :
+        t.Priority == TaskPriority.High ? 2 :
+        t.Priority == TaskPriority.Medium ? 1 : 0;
+
     private readonly AppDbContextBase _db;
     private readonly ICurrentUserContext _currentUser;
 
@@ -45,22 +52,25 @@ public sealed class StudyTaskService : IStudyTaskService
 
         if (query.MinPriority.HasValue)
         {
-            q = q.Where(t => t.Priority >= query.MinPriority.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            q = q.Where(t => t.Title.Contains(query.Search));
+            q = q.Where(PriorityAtLeast(query.MinPriority.Value));
         }
 
         q = query.Sort.ToLowerInvariant() switch
         {
-            "priority" => q.OrderByDescending(t => t.Priority).ThenBy(t => t.DeadlineUtc),
+            "priority" => q.OrderByDescending(PriorityRank).ThenBy(t => t.DeadlineUtc),
             "title" => q.OrderBy(t => t.Title),
-            _ => q.OrderBy(t => t.DeadlineUtc).ThenByDescending(t => t.Priority)
+            _ => q.OrderBy(t => t.DeadlineUtc).ThenByDescending(PriorityRank)
         };
 
         var items = await q.ToListAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            items = items
+                .Where(t => t.Title.Contains(query.Search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
         return items.Select(Map).ToList();
     }
 
@@ -151,6 +161,14 @@ public sealed class StudyTaskService : IStudyTaskService
         await _db.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    private static Expression<Func<StudyTask, bool>> PriorityAtLeast(TaskPriority min) => min switch
+    {
+        TaskPriority.Critical => t => t.Priority == TaskPriority.Critical,
+        TaskPriority.High => t => t.Priority == TaskPriority.High || t.Priority == TaskPriority.Critical,
+        TaskPriority.Medium => t => t.Priority != TaskPriority.Low,
+        _ => t => true
+    };
 
     private async Task EnsureDisciplineOwnedAsync(Guid disciplineId, CancellationToken cancellationToken)
     {
