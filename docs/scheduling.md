@@ -61,3 +61,29 @@ The horizon is either `from` and `to` (UTC, half-open `[from, to)`, at most 92 d
 Idempotency inside the horizon: unlocked `Planned` sessions of unfinished tasks that overlap `[from, to)` are deleted and replaced. A second call with the same inputs does not add another copy of that work. `Completed`, `Missed`, and `IsLocked` sessions stay where they are. Unlocked `Planned` sessions that lie fully outside the horizon also stay, and their minutes are subtracted from the work still to place, so a later horizon does not schedule those minutes again.
 
 The response lists the sessions created by this call, tasks that still have unplaced minutes (`unscheduled.remainingMinutes` is the work this call tried to place, `scheduledMinutes` is how much of it was written), and overlaps between frozen sessions (`conflicts`).
+
+## Replanning
+
+`POST /api/schedule/replan` takes the same horizon as generate and rebuilds it after a missed session, a deadline change, a new task, or updated actual time.
+
+Sessions that stay (`stayed` when they overlap the horizon):
+
+- `Completed`
+- any session with `IsLocked`
+
+Sessions that are deleted and returned in `removed`:
+
+- unlocked `Missed` sessions that overlap the horizon
+- unlocked `Planned` sessions that overlap the horizon and have not ended (`EndAtUtc` is later than now)
+
+Unlocked `Planned` sessions outside the horizon stay. Their minutes are treated as already placed, so this horizon does not schedule them again.
+
+Minutes placed by replan:
+
+```
+max(0, EstimatedMinutes - ActualMinutes - completed coverage - locked coverage - unlocked Planned minutes outside the horizon)
+```
+
+Completed coverage is `ActualMinutes` on that session, or `PlannedMinutes` when actual time is missing. Locked coverage is `PlannedMinutes`. Actual time and completed coverage are both subtracted. Generate still uses the planner rule that takes the larger of the two.
+
+`created` lists the new `Planned` rows. `unscheduled` and `conflicts` mean the same thing as on generate.

@@ -21,7 +21,17 @@ public sealed record GeneratedSessionDto(
     DateTime StartAtUtc,
     DateTime EndAtUtc,
     int PlannedMinutes,
-    SessionStatus Status);
+    SessionStatus Status,
+    bool IsLocked);
+
+public sealed record ReplanScheduleResponse(
+    DateTime From,
+    DateTime To,
+    IReadOnlyList<GeneratedSessionDto> Stayed,
+    IReadOnlyList<GeneratedSessionDto> Created,
+    IReadOnlyList<GeneratedSessionDto> Removed,
+    IReadOnlyList<UnscheduledWorkDto> Unscheduled,
+    IReadOnlyList<ScheduleConflictDto> Conflicts);
 
 public sealed record UnscheduledWorkDto(
     Guid StudyTaskId,

@@ -7,4 +7,8 @@ public interface IScheduleService
     Task<GenerateScheduleResponse> GenerateAsync(
         GenerateScheduleRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ReplanScheduleResponse> ReplanAsync(
+        GenerateScheduleRequest request,
+        CancellationToken cancellationToken = default);
 }
