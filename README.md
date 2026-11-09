@@ -151,8 +151,11 @@ JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database updat
 | Завдання   | `/api/tasks`       | JWT (власні завдання; admin — усі)     |
 | Дисципліни | `/api/disciplines` | JWT (`userId` з token, не з body)      |
 | Admin      | `/api/admin/users` | JWT + роль **Admin**                   |
+| Розклад    | `/api/schedule`    | JWT (лише дані поточного користувача)  |
 
 **Query для списків:** фільтрація, `search`, `sort` — див. Swagger.
+
+`POST /api/schedule/generate` ставить сесії зі статусом `Planned` у вільні години. Горизонт — `from`/`to` (UTC, до 92 днів) або `days` (1–92 від поточного часу). Повторний виклик замінює незаблоковані `Planned`-сесії в цьому горизонті, а не дублює їх. Відповідь містить створені сесії, роботу, яка не вмістилась, і перетини заморожених сесій. Правила — у [`docs/scheduling.md`](docs/scheduling.md).
 
 **Відхилення від методички ЛР2:** замість шаблонного `/api/resources` використовується `/api/tasks` — зрозуміліше для STEM і майбутнього MAUI-клієнта (обґрунтування — у звітах ЛР2).
 
