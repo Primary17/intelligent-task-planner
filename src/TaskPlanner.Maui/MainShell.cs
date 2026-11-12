@@ -15,11 +15,13 @@ public sealed class MainShell : Shell
 
     private readonly ShellContent _disciplines;
     private readonly ShellContent _tasks;
+    private readonly ShellContent _upcoming;
     private readonly ShellContent _settings;
 
     public MainShell(
         DisciplinesPage disciplinesPage,
         TasksPage tasksPage,
+        UpcomingPage upcomingPage,
         SettingsPage settingsPage)
     {
         FlyoutBehavior = FlyoutBehavior.Disabled;
@@ -34,6 +36,11 @@ public sealed class MainShell : Shell
             Content = tasksPage,
             Route = "tasks"
         };
+        _upcoming = new ShellContent
+        {
+            Content = upcomingPage,
+            Route = "upcoming"
+        };
         _settings = new ShellContent
         {
             Content = settingsPage,
@@ -43,6 +50,7 @@ public sealed class MainShell : Shell
         var tabBar = new TabBar();
         tabBar.Items.Add(_disciplines);
         tabBar.Items.Add(_tasks);
+        tabBar.Items.Add(_upcoming);
         tabBar.Items.Add(_settings);
         Items.Add(tabBar);
 
@@ -60,6 +68,7 @@ public sealed class MainShell : Shell
         var text = Localizer.Current;
         _disciplines.Title = text["Nav_Disciplines"];
         _tasks.Title = text["Nav_Tasks"];
+        _upcoming.Title = text["Nav_Upcoming"];
         _settings.Title = text["Nav_Settings"];
     }
 }

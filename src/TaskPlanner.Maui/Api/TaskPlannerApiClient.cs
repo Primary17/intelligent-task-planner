@@ -11,7 +11,7 @@ public sealed class TaskPlannerApiClient
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+        Converters = { new JsonStringEnumConverter() }
     };
 
     private readonly HttpClient _http;
@@ -106,6 +106,19 @@ public sealed class TaskPlannerApiClient
             ct).ConfigureAwait(false);
         await EnsureSuccessOrProblemAsync(response, ct).ConfigureAwait(false);
         var list = await response.Content.ReadFromJsonAsync<List<EffectiveDayDto>>(JsonOptions, ct).ConfigureAwait(false);
+        return list ?? [];
+    }
+
+    public async Task<IReadOnlyList<StudySessionDto>> GetSessionsAsync(
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken ct = default)
+    {
+        var from = Uri.EscapeDataString(fromUtc.ToUniversalTime().ToString("o"));
+        var to = Uri.EscapeDataString(toUtc.ToUniversalTime().ToString("o"));
+        var response = await _http.GetAsync($"api/sessions?from={from}&to={to}", ct).ConfigureAwait(false);
+        await EnsureSuccessOrProblemAsync(response, ct).ConfigureAwait(false);
+        var list = await response.Content.ReadFromJsonAsync<List<StudySessionDto>>(JsonOptions, ct).ConfigureAwait(false);
         return list ?? [];
     }
 

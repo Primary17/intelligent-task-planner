@@ -20,3 +20,10 @@ public enum StudyTaskStatus
     InProgress = 1,
     Completed = 2
 }
+
+public enum SessionStatus
+{
+    Planned = 0,
+    Completed = 1,
+    Missed = 2
+}

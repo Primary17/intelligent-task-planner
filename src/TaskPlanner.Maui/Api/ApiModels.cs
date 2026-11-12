@@ -61,6 +61,19 @@ public sealed record CreateStudyTaskRequest(
     int EstimatedMinutes,
     StudyTaskStatus Status = StudyTaskStatus.NotStarted);
 
+public sealed record StudySessionDto(
+    Guid Id,
+    Guid StudyTaskId,
+    string TaskTitle,
+    Guid DisciplineId,
+    string DisciplineName,
+    DateTime StartAtUtc,
+    DateTime EndAtUtc,
+    int PlannedMinutes,
+    int? ActualMinutes,
+    SessionStatus Status,
+    bool IsLocked);
+
 public sealed record UpdateStudyTaskRequest(
     string Title,
     DateTime DeadlineUtc,

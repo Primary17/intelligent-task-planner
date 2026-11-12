@@ -26,6 +26,7 @@
 TaskPlanner/
 ├── TaskPlanner.sln          # API + Domain / Application / Infrastructure
 ├── TaskPlanner.Maui.sln     # лише проєкт MAUI (потрібні workload’и MAUI)
+├── client/                  # React: календар, сесії, профіль
 ├── CONCEPT.md
 └── src/
     ├── TaskPlanner.Domain/
@@ -79,9 +80,19 @@ dotnet workload restore
 dotnet build TaskPlanner.Maui.sln
 ```
 
-Перед запуском клієнта підніміть API (наприклад профіль `http`, порт **5109**). У застосунку на екрані **Налаштування** вкажіть базову URL, наприклад `http://localhost:5109/` (Windows) або `http://10.0.2.2:5109/` (Android Emulator).
+Перед запуском клієнта підніміть API (наприклад профіль `http`, порт **5109**). У застосунку на екрані **Налаштування** вкажіть базову URL:
+
+| Де запускається застосунок | Базова URL |
+|----------------------------|------------|
+| Windows, iOS Simulator | `http://localhost:5109/` |
+| Android Emulator | `http://10.0.2.2:5109/` |
+| Телефон у тій самій мережі | `http://<IP-адреса комп’ютера>:5109/` |
 
 Адресу API можна змінити на екрані входу, ще до авторизації. Дедлайн завдання має дату й час. Нагадування: за годину до дедлайну, у момент дедлайну, на початку вікна навчання і вранці (план на день або вихідний). Час ранкового повідомлення задається в налаштуваннях. На Android і iOS вони ставляться після відкриття списку завдань; на Windows вибір лише зберігається.
+
+**Хто за що відповідає.** React — календар, ручні сесії, профіль і попередження про навантаження. MAUI — вхід, дисципліни, завдання, локальні нагадування про дедлайн і перегляд найближчих сесій на тиждень. Кнопок «сформувати розклад» у мобільному застосунку немає: це окремий крок після API планування.
+
+GitHub Actions збирає лише `TaskPlanner.sln`. MAUI на агенті Ubuntu не збирається, бо там немає workload’ів; збірку мобільного клієнта запускайте локально командою вище.
 
 ---
 
@@ -192,6 +203,9 @@ JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database updat
 | Auth | `/api/auth` | register/login — публічно; `/me` — JWT |
 | Завдання | `/api/tasks` | JWT |
 | Дисципліни | `/api/disciplines` | JWT |
+| Доступний час | `/api/availability` | JWT |
+| Сесії | `/api/sessions` | JWT |
+| Навантаження | `/api/planning` | JWT |
 | Admin | `/api/admin/users` | JWT + роль **Admin** |
 
 Деталі query-параметрів — у Swagger.
@@ -227,7 +241,7 @@ JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database updat
 - [x] ЛР1 — EF Core, multi-DB, migrations, LINQ
 - [x] ЛР2 — REST, DTO, сервісний шар, Swagger
 - [x] ЛР3 — JWT, User/Admin, policies, ізоляція ресурсів
-- [ ] ЛР4 — .NET MAUI клієнт
+- [x] ЛР4 — .NET MAUI клієнт (вхід, дисципліни, завдання, нагадування, перегляд сесій; push — окремо)
 - [ ] ЛР5 — Docker / Compose
 - [x] STEM — React UI, управління завданнями, навчальні сесії, календар, перевірка навантаження та профіль користувача
 
