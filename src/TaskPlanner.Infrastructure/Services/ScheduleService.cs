@@ -105,7 +105,7 @@ public sealed class ScheduleService : IScheduleService
             .ToDictionary(g => g.Key, g => g.Sum(s => s.PlannedMinutes));
 
         var schedulable = tasks
-            .Select(task => ToSchedulable(task, keptPlanned.GetValueOrDefault(task.Id), replan))
+            .Select(task => ToSchedulable(task, keptPlanned.GetValueOrDefault(task.Id)))
             .ToList();
 
         var occupied = kept.Select(ToOccupied).ToList();
@@ -172,25 +172,15 @@ public sealed class ScheduleService : IScheduleService
         return replan && session.Status == SessionStatus.Missed;
     }
 
-    private static SchedulableTask ToSchedulable(StudyTask task, int keptPlannedMinutes, bool replan)
-    {
-        var estimated = task.EstimatedMinutes - keptPlannedMinutes;
-        var actual = task.ActualMinutes;
-        if (replan)
-        {
-            estimated -= actual;
-            actual = 0;
-        }
-
-        return new SchedulableTask(
+    private static SchedulableTask ToSchedulable(StudyTask task, int keptPlannedMinutes) =>
+        new(
             task.Id,
             task.DeadlineUtc,
             task.Complexity,
             task.Priority,
-            Math.Max(0, estimated),
-            actual,
+            Math.Max(0, task.EstimatedMinutes - keptPlannedMinutes),
+            task.ActualMinutes,
             task.Status);
-    }
 
     private static OccupiedSession ToOccupied(StudySession session) =>
         new(

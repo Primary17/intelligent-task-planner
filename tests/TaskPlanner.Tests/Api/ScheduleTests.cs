@@ -255,6 +255,55 @@ public sealed class ScheduleTests
     }
 
     [Fact]
+    public async Task Replan_DoesNotAddTaskActualToTheSameCompletedSession()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 180, deadline: Monday.AddDays(4));
+        await client.PutJsonAsync($"/api/tasks/{task.Id}", new UpdateStudyTaskRequest(
+            "Lab", task.DeadlineUtc, task.Complexity, task.Priority, task.EstimatedMinutes, 60, StudyTaskStatus.InProgress));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Tuesday, 17, 19));
+        var completedId = await InsertSessionAsync(
+            task.Id,
+            Monday.AddHours(17),
+            Monday.AddHours(18),
+            status: SessionStatus.Completed,
+            actualMinutes: 60);
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(completedId, Assert.Single(plan.Stayed).Id);
+        Assert.Empty(plan.Removed);
+        Assert.Equal(120, plan.Created.Sum(session => session.PlannedMinutes));
+        Assert.Equal(
+            new[] { Monday.AddHours(18), Monday.AddDays(1).AddHours(17) },
+            plan.Created.Select(session => session.StartAtUtc));
+        Assert.Empty(plan.Unscheduled);
+    }
+
+    [Fact]
+    public async Task Replan_CountsTheLargerActualMeasurement()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 180, deadline: Monday.AddDays(4));
+        await client.PutJsonAsync($"/api/tasks/{task.Id}", new UpdateStudyTaskRequest(
+            "Lab", task.DeadlineUtc, task.Complexity, task.Priority, task.EstimatedMinutes, 30, StudyTaskStatus.InProgress));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Tuesday, 17, 19));
+        await InsertSessionAsync(
+            task.Id,
+            Monday.AddHours(17),
+            Monday.AddHours(18),
+            status: SessionStatus.Completed,
+            actualMinutes: 60);
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(120, plan.Created.Sum(session => session.PlannedMinutes));
+        Assert.Empty(plan.Unscheduled);
+    }
+
+    [Fact]
     public async Task Replan_PlacesNewTaskInTheNearestSlot()
     {
         var client = await _factory.CreateUserClientAsync();

@@ -78,12 +78,12 @@ Sessions that are deleted and returned in `removed`:
 
 Unlocked `Planned` sessions outside the horizon stay. Their minutes are treated as already placed, so this horizon does not schedule them again.
 
-Minutes placed by replan:
+Minutes placed by replan are the same quantity generate places:
 
 ```
-max(0, EstimatedMinutes - ActualMinutes - completed coverage - locked coverage - unlocked Planned minutes outside the horizon)
+max(0, EstimatedMinutes - unlocked Planned minutes outside the horizon - max(ActualMinutes, frozen coverage))
 ```
 
-Completed coverage is `ActualMinutes` on that session, or `PlannedMinutes` when actual time is missing. Locked coverage is `PlannedMinutes`. Actual time and completed coverage are both subtracted. Generate still uses the planner rule that takes the larger of the two.
+`StudyTask.ActualMinutes` and the time logged on a completed session are two measurements of the same work, not separate piles. The larger one counts. A task logged at 60 minutes with a completed session also logged at 60 still has 60 minutes of progress, so a 180-minute estimate has 120 minutes left. Completed coverage is `ActualMinutes` on that session, or `PlannedMinutes` when actual time is missing. Locked coverage is `PlannedMinutes`. Frozen coverage is the sum of those session figures.
 
 `created` lists the new `Planned` rows. `unscheduled` and `conflicts` mean the same thing as on generate.
