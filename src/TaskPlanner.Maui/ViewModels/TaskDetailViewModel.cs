@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
 using TaskPlanner.Maui;
 
 namespace TaskPlanner.Maui.ViewModels;
@@ -41,7 +42,7 @@ public partial class TaskDetailViewModel : ObservableObject
             Item = await _api.GetTaskAsync(id);
             if (Item is null)
             {
-                ErrorMessage = "Завдання не знайдено.";
+                ErrorMessage = Localizer.Current["Tasks_NotFound"];
             }
         }
         catch (ApiException ex)
@@ -77,11 +78,12 @@ public partial class TaskDetailViewModel : ObservableObject
             return;
         }
 
+        var text = Localizer.Current;
         var confirm = await Shell.Current.DisplayAlert(
-            "Видалити?",
-            $"Видалити «{Item.Title}»?",
-            "Видалити",
-            "Скасувати");
+            text["Common_DeleteTitle"],
+            text.Format("Tasks_DeleteBody", Item.Title),
+            text["Common_Delete"],
+            text["Common_Cancel"]);
         if (!confirm)
         {
             return;

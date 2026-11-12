@@ -1,48 +1,108 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TaskPlanner.Maui.Services;
 using Microsoft.Extensions.DependencyInjection;
+using TaskPlanner.Maui.Localization;
+using TaskPlanner.Maui.Services;
 
 namespace TaskPlanner.Maui.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly IAuthTokenStore _tokens;
-    private readonly AppSettings _settings;
+    private readonly NotificationPreferences _notifications;
     private readonly IServiceProvider _services;
+    private bool _loading = true;
 
-    [ObservableProperty] private string _apiBaseUrl = "";
+    [ObservableProperty] private bool _isUkrainian;
 
-    [ObservableProperty] private string? _message;
+    [ObservableProperty] private bool _isEnglish;
 
-    public SettingsViewModel(IAuthTokenStore tokens, AppSettings settings, IServiceProvider services)
+    [ObservableProperty] private bool _remindHourBefore;
+
+    [ObservableProperty] private bool _remindAtDeadline;
+
+    [ObservableProperty] private bool _remindStudyStart;
+
+    [ObservableProperty] private bool _morningSummary;
+
+    [ObservableProperty] private TimeSpan _morningTime;
+
+    public SettingsViewModel(
+        IAuthTokenStore tokens,
+        NotificationPreferences notifications,
+        IServiceProvider services)
     {
         _tokens = tokens;
-        _settings = settings;
+        _notifications = notifications;
         _services = services;
-        ApiBaseUrl = _settings.GetBaseUrl();
+        RemindHourBefore = _notifications.RemindHourBefore;
+        RemindAtDeadline = _notifications.RemindAtDeadline;
+        RemindStudyStart = _notifications.RemindStudyStart;
+        MorningSummary = _notifications.MorningSummary;
+        MorningTime = _notifications.MorningTime;
+        ApplyLanguageFlags();
+        _loading = false;
+        Localizer.Current.LanguageChanged += (_, _) => ApplyLanguageFlags();
     }
 
-    [RelayCommand]
-    private void LoadDefaultsEmulator()
+    partial void OnIsUkrainianChanged(bool value)
     {
-        ApiBaseUrl = AppSettings.DefaultEmulatorBaseUrl;
-        Message = "Встановлено URL для Emulator / VM (10.0.2.2).";
+        if (_loading || !value)
+        {
+            return;
+        }
+
+        Localizer.Current.SetLanguage(Localizer.Ukrainian);
     }
 
-    [RelayCommand]
-    private void LoadDefaultsLocalhost()
+    partial void OnIsEnglishChanged(bool value)
     {
-        ApiBaseUrl = AppSettings.DefaultLocalBaseUrl;
-        Message = "Встановлено http://localhost:5109/ (Windows / physical device у тій же мережі).";
+        if (_loading || !value)
+        {
+            return;
+        }
+
+        Localizer.Current.SetLanguage(Localizer.English);
     }
 
-    [RelayCommand]
-    private async Task SaveAsync()
+    partial void OnRemindHourBeforeChanged(bool value)
     {
-        _settings.SetBaseUrl(ApiBaseUrl);
-        Message = "Збережено. Наступний запит піде на цю адресу.";
-        await Task.CompletedTask;
+        if (!_loading)
+        {
+            _notifications.RemindHourBefore = value;
+        }
+    }
+
+    partial void OnRemindAtDeadlineChanged(bool value)
+    {
+        if (!_loading)
+        {
+            _notifications.RemindAtDeadline = value;
+        }
+    }
+
+    partial void OnRemindStudyStartChanged(bool value)
+    {
+        if (!_loading)
+        {
+            _notifications.RemindStudyStart = value;
+        }
+    }
+
+    partial void OnMorningSummaryChanged(bool value)
+    {
+        if (!_loading)
+        {
+            _notifications.MorningSummary = value;
+        }
+    }
+
+    partial void OnMorningTimeChanged(TimeSpan value)
+    {
+        if (!_loading)
+        {
+            _notifications.MorningTime = value;
+        }
     }
 
     [RelayCommand]
@@ -53,5 +113,13 @@ public partial class SettingsViewModel : ObservableObject
         {
             Application.Current.MainPage = _services.GetRequiredService<Pages.LoginPage>();
         }
+    }
+
+    private void ApplyLanguageFlags()
+    {
+        _loading = true;
+        IsUkrainian = Localizer.Current.Language == Localizer.Ukrainian;
+        IsEnglish = Localizer.Current.Language == Localizer.English;
+        _loading = false;
     }
 }

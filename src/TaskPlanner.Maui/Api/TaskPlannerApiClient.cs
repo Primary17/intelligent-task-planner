@@ -96,6 +96,19 @@ public sealed class TaskPlannerApiClient
         return true;
     }
 
+    public async Task<IReadOnlyList<EffectiveDayDto>> GetEffectiveAvailabilityAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken ct = default)
+    {
+        var response = await _http.GetAsync(
+            $"api/availability/effective?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
+            ct).ConfigureAwait(false);
+        await EnsureSuccessOrProblemAsync(response, ct).ConfigureAwait(false);
+        var list = await response.Content.ReadFromJsonAsync<List<EffectiveDayDto>>(JsonOptions, ct).ConfigureAwait(false);
+        return list ?? [];
+    }
+
     public async Task<IReadOnlyList<StudyTaskDto>> GetTasksAsync(CancellationToken ct = default)
     {
         var response = await _http.GetAsync("api/tasks", ct).ConfigureAwait(false);

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
 using TaskPlanner.Maui.Services;
 
 namespace TaskPlanner.Maui.ViewModels;
@@ -81,7 +82,7 @@ public partial class LoginViewModel : ObservableObject
         ErrorMessage = null;
         if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "Вкажіть email і пароль.";
+            ErrorMessage = Localizer.Current["Login_NeedCredentials"];
             return;
         }
 
@@ -98,7 +99,7 @@ public partial class LoginViewModel : ObservableObject
         }
         catch (HttpRequestException)
         {
-            ErrorMessage = "Не вдалося з’єднатися з сервером. Перевірте базову URL у налаштуваннях.";
+            ErrorMessage = Localizer.Current["Login_NoConnection"];
         }
         catch (Exception ex)
         {

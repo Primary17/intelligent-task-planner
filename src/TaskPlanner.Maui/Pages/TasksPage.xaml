@@ -4,17 +4,18 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:api="clr-namespace:TaskPlanner.Maui.Api"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
     xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
-    Title="Завдання"
+    Title="{loc:Loc Nav_Tasks}"
     x:DataType="vm:TasksViewModel">
 
     <Grid Padding="16,12" RowDefinitions="Auto,Auto,*" RowSpacing="8">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <Label
                 Style="{StaticResource Caption}"
-                Text="Найближчі дедлайни зверху"
+                Text="{loc:Loc Tasks_Hint}"
                 VerticalOptions="Center" />
-            <Button Grid.Column="1" Command="{Binding CreateNewCommand}" Text="Додати" />
+            <Button Grid.Column="1" Command="{Binding CreateNewCommand}" Text="{loc:Loc Common_Add}" />
         </Grid>
 
         <VerticalStackLayout Grid.Row="1" Spacing="4">
@@ -35,14 +36,32 @@
                                 <VerticalStackLayout Spacing="4">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <Label FontAttributes="Bold" FontSize="16" Text="{Binding Title}" />
-                                        <Label
-                                            Grid.Column="1"
-                                            Style="{StaticResource Caption}"
-                                            Text="{Binding Priority, Converter={StaticResource PriorityLabel}}" />
+                                        <Label Grid.Column="1" Style="{StaticResource Caption}">
+                                            <Label.Text>
+                                                <MultiBinding Converter="{StaticResource Refresh}">
+                                                    <Binding Path="Priority" Converter="{StaticResource PriorityLabel}" />
+                                                    <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
                                     </Grid>
                                     <Label Style="{StaticResource Caption}" Text="{Binding DisciplineName}" />
-                                    <Label Text="{Binding DeadlineUtc, Converter={StaticResource LocalDeadline}, StringFormat='До {0}'}" />
-                                    <Label Text="{Binding Status, Converter={StaticResource StatusLabel}}" />
+                                    <Label>
+                                        <Label.Text>
+                                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Due">
+                                                <Binding Path="DeadlineUtc" Converter="{StaticResource LocalDeadline}" />
+                                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                    <Label>
+                                        <Label.Text>
+                                            <MultiBinding Converter="{StaticResource Refresh}">
+                                                <Binding Path="Status" Converter="{StaticResource StatusLabel}" />
+                                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
@@ -56,7 +75,7 @@
                 InputTransparent="True"
                 IsVisible="{Binding IsEmpty}"
                 Style="{StaticResource Caption}"
-                Text="Завдань ще немає.&#10;Створіть перше й оберіть дисципліну."
+                Text="{loc:Loc Tasks_Empty}"
                 VerticalOptions="Center" />
         </Grid>
     </Grid>

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
 using TaskPlanner.Maui;
 
 namespace TaskPlanner.Maui.ViewModels;
@@ -50,7 +51,7 @@ public partial class DisciplinesViewModel : ObservableObject
         }
         catch (HttpRequestException)
         {
-            ErrorMessage = "Немає з’єднання з API.";
+            ErrorMessage = Localizer.Current["Common_NoConnection"];
         }
         catch (Exception ex)
         {

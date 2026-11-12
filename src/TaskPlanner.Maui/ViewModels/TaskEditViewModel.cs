@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
 
 namespace TaskPlanner.Maui.ViewModels;
 
@@ -21,7 +22,9 @@ public partial class TaskEditViewModel : ObservableObject
 
     [ObservableProperty] private string _title = "";
 
-    [ObservableProperty] private DateTime _deadlineLocal = DateTime.Today.AddDays(7);
+    [ObservableProperty] private DateTime _deadlineDate = DateTime.Today.AddDays(7);
+
+    [ObservableProperty] private TimeSpan _deadlineTime = TimeSpan.FromHours(18);
 
     [ObservableProperty] private int _complexity = 3;
 
@@ -37,14 +40,20 @@ public partial class TaskEditViewModel : ObservableObject
 
     [ObservableProperty] private string? _errorMessage;
 
-    [ObservableProperty] private string _header = "Нове завдання";
+    [ObservableProperty] private string _header = "";
+
+    private bool _editing;
 
     [ObservableProperty] private IReadOnlyList<DisciplineDto> _disciplines = Array.Empty<DisciplineDto>();
 
     public TaskEditViewModel(TaskPlannerApiClient api)
     {
         _api = api;
+        ApplyHeader();
+        Localizer.Current.LanguageChanged += (_, _) => ApplyHeader();
     }
+
+    private void ApplyHeader() => Header = Localizer.Current[_editing ? "Tasks_Editing" : "Tasks_New"];
 
     partial void OnSelectedDisciplineChanged(DisciplineDto? value)
     {
@@ -58,7 +67,8 @@ public partial class TaskEditViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(value))
         {
-            Header = "Нове завдання";
+            _editing = false;
+            ApplyHeader();
             return;
         }
 
@@ -104,15 +114,18 @@ public partial class TaskEditViewModel : ObservableObject
             var t = await _api.GetTaskAsync(id);
             if (t is null)
             {
-                ErrorMessage = "Не знайдено.";
+                ErrorMessage = Localizer.Current["Common_NotFound"];
                 return;
             }
 
-            Header = "Редагування";
+            _editing = true;
+            ApplyHeader();
             DisciplineId = t.DisciplineId;
             SelectedDiscipline = Disciplines.FirstOrDefault(x => x.Id == t.DisciplineId);
             Title = t.Title;
-            DeadlineLocal = t.DeadlineUtc.ToLocalTime();
+            var localDeadline = t.DeadlineUtc.ToLocalTime();
+            DeadlineDate = localDeadline.Date;
+            DeadlineTime = localDeadline.TimeOfDay;
             Complexity = t.Complexity;
             Priority = t.Priority;
             EstimatedMinutes = t.EstimatedMinutes;
@@ -135,17 +148,18 @@ public partial class TaskEditViewModel : ObservableObject
         ErrorMessage = null;
         if (string.IsNullOrWhiteSpace(Title))
         {
-            ErrorMessage = "Вкажіть назву.";
+            ErrorMessage = Localizer.Current["Common_NeedTitle"];
             return;
         }
 
         if (DisciplineId == Guid.Empty)
         {
-            ErrorMessage = "Оберіть дисципліну (спочатку створіть дисципліну).";
+            ErrorMessage = Localizer.Current["Tasks_NeedDiscipline"];
             return;
         }
 
-        var deadlineUtc = DateTime.SpecifyKind(DeadlineLocal, DateTimeKind.Local).ToUniversalTime();
+        var localDeadline = DeadlineDate.Date.Add(DeadlineTime);
+        var deadlineUtc = DateTime.SpecifyKind(localDeadline, DateTimeKind.Local).ToUniversalTime();
 
         IsBusy = true;
         try

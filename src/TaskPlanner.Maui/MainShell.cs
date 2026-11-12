@@ -1,3 +1,4 @@
+using TaskPlanner.Maui.Localization;
 using TaskPlanner.Maui.Pages;
 
 namespace TaskPlanner.Maui;
@@ -12,35 +13,53 @@ public sealed class MainShell : Shell
     public const string RouteTaskDetail = "task-detail";
     public const string RouteTaskEdit = "task-edit";
 
+    private readonly ShellContent _disciplines;
+    private readonly ShellContent _tasks;
+    private readonly ShellContent _settings;
+
     public MainShell(
         DisciplinesPage disciplinesPage,
         TasksPage tasksPage,
         SettingsPage settingsPage)
     {
-        var tabBar = new TabBar();
-        tabBar.Items.Add(new ShellContent
+        FlyoutBehavior = FlyoutBehavior.Disabled;
+
+        _disciplines = new ShellContent
         {
-            Title = "Дисципліни",
             Content = disciplinesPage,
             Route = "disciplines"
-        });
-        tabBar.Items.Add(new ShellContent
+        };
+        _tasks = new ShellContent
         {
-            Title = "Завдання",
             Content = tasksPage,
             Route = "tasks"
-        });
-        tabBar.Items.Add(new ShellContent
+        };
+        _settings = new ShellContent
         {
-            Title = "Налаштування",
             Content = settingsPage,
             Route = "settings"
-        });
+        };
+
+        var tabBar = new TabBar();
+        tabBar.Items.Add(_disciplines);
+        tabBar.Items.Add(_tasks);
+        tabBar.Items.Add(_settings);
         Items.Add(tabBar);
 
         Routing.RegisterRoute(RouteDisciplineDetail, typeof(DisciplineDetailPage));
         Routing.RegisterRoute(RouteDisciplineEdit, typeof(DisciplineEditPage));
         Routing.RegisterRoute(RouteTaskDetail, typeof(TaskDetailPage));
         Routing.RegisterRoute(RouteTaskEdit, typeof(TaskEditPage));
+
+        Localizer.Current.LanguageChanged += (_, _) => ApplyTitles();
+        ApplyTitles();
+    }
+
+    private void ApplyTitles()
+    {
+        var text = Localizer.Current;
+        _disciplines.Title = text["Nav_Disciplines"];
+        _tasks.Title = text["Nav_Tasks"];
+        _settings.Title = text["Nav_Settings"];
     }
 }

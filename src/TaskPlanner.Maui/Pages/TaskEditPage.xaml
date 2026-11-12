@@ -4,58 +4,71 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:api="clr-namespace:TaskPlanner.Maui.Api"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
     xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
-    Title="Завдання"
+    Shell.NavBarIsVisible="False"
+    Title="{loc:Loc Nav_Tasks}"
     x:DataType="vm:TaskEditViewModel">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="8">
+            <controls:PageBackBar />
             <Label FontAttributes="Bold" FontSize="22" Text="{Binding Header}" />
             <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
             <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
 
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Spacing="4">
-                    <Label Style="{StaticResource FieldLabel}" Text="Дисципліна" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_Discipline}" />
                     <Picker ItemsSource="{Binding Disciplines}" SelectedItem="{Binding SelectedDiscipline}">
                         <Picker.ItemDisplayBinding>
                             <Binding Path="Name" x:DataType="api:DisciplineDto" />
                         </Picker.ItemDisplayBinding>
                     </Picker>
 
-                    <Label Style="{StaticResource FieldLabel}" Text="Назва" />
-                    <Entry Placeholder="Що треба зробити" Text="{Binding Title}" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Common_Name}" />
+                    <Entry Placeholder="{loc:Loc Tasks_What}" Text="{Binding Title}" />
 
-                    <Label Style="{StaticResource FieldLabel}" Text="Дедлайн" />
-                    <DatePicker Date="{Binding DeadlineLocal}" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_DeadlineField}" />
+                    <DatePicker Date="{Binding DeadlineDate}" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_TimeField}" />
+                    <TimePicker Time="{Binding DeadlineTime}" />
 
-                    <Label Style="{StaticResource FieldLabel}" Text="{Binding Complexity, StringFormat='Складність: {0} з 5'}" />
+                    <Label Style="{StaticResource FieldLabel}">
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Complexity">
+                                <Binding Path="Complexity" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
                     <Slider Maximum="5" Minimum="1" Value="{Binding Complexity}" />
 
-                    <Label Style="{StaticResource FieldLabel}" Text="Пріоритет" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_PriorityField}" />
                     <Picker ItemsSource="{Binding PriorityOptions}" SelectedItem="{Binding Priority}">
                         <Picker.ItemDisplayBinding>
                             <Binding Converter="{StaticResource PriorityLabel}" x:DataType="{x:Null}" />
                         </Picker.ItemDisplayBinding>
                     </Picker>
 
-                    <Label Style="{StaticResource FieldLabel}" Text="Статус" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_StatusField}" />
                     <Picker ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding Status}">
                         <Picker.ItemDisplayBinding>
                             <Binding Converter="{StaticResource StatusLabel}" x:DataType="{x:Null}" />
                         </Picker.ItemDisplayBinding>
                     </Picker>
 
-                    <Label Style="{StaticResource FieldLabel}" Text="Оцінка, хвилини" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_EstimateField}" />
                     <Entry Keyboard="Numeric" Text="{Binding EstimatedMinutes}" />
 
-                    <Label Style="{StaticResource FieldLabel}" Text="Фактично витрачено, хвилини" />
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Tasks_ActualField}" />
                     <Entry Keyboard="Numeric" Text="{Binding ActualMinutes}" />
                 </VerticalStackLayout>
             </Border>
 
-            <Button Margin="0,8,0,0" Command="{Binding SaveCommand}" Text="Зберегти" />
-            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Text="Скасувати" />
+            <Button Margin="0,8,0,0" Command="{Binding SaveCommand}" Text="{loc:Loc Common_Save}" />
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Text="{loc:Loc Common_Cancel}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

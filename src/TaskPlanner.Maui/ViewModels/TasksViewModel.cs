@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
+using TaskPlanner.Maui.Services;
 using TaskPlanner.Maui;
 
 namespace TaskPlanner.Maui.ViewModels;
@@ -9,6 +11,7 @@ namespace TaskPlanner.Maui.ViewModels;
 public partial class TasksViewModel : ObservableObject
 {
     private readonly TaskPlannerApiClient _api;
+    private readonly IDeadlineReminderService _reminders;
 
     [ObservableProperty] private bool _isBusy;
 
@@ -18,9 +21,10 @@ public partial class TasksViewModel : ObservableObject
 
     public ObservableCollection<StudyTaskDto> Items { get; } = new();
 
-    public TasksViewModel(TaskPlannerApiClient api)
+    public TasksViewModel(TaskPlannerApiClient api, IDeadlineReminderService reminders)
     {
         _api = api;
+        _reminders = reminders;
     }
 
     [RelayCommand]
@@ -43,6 +47,26 @@ public partial class TasksViewModel : ObservableObject
             {
                 Items.Add(t);
             }
+
+            try
+            {
+                IReadOnlyList<EffectiveDayDto> days = [];
+                try
+                {
+                    var today = DateOnly.FromDateTime(DateTime.Now);
+                    days = await _api.GetEffectiveAvailabilityAsync(today, today.AddDays(6));
+                }
+                catch (Exception)
+                {
+                    // Deadline reminders still make sense without a weekly schedule.
+                }
+
+                await _reminders.SyncAsync(Items.ToList(), days);
+            }
+            catch (Exception)
+            {
+                // A reminder failure must not hide the task list.
+            }
         }
         catch (ApiException ex)
         {
@@ -50,7 +74,7 @@ public partial class TasksViewModel : ObservableObject
         }
         catch (HttpRequestException)
         {
-            ErrorMessage = "Немає з’єднання з API.";
+            ErrorMessage = Localizer.Current["Common_NoConnection"];
         }
         catch (Exception ex)
         {

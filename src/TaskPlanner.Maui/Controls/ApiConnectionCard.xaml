@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="TaskPlanner.Maui.Controls.ApiConnectionCard"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    x:DataType="vm:ApiConnectionViewModel">
+    <VerticalStackLayout Spacing="8">
+        <Label FontAttributes="Bold" FontSize="22" Text="{loc:Loc Settings_Connection}" />
+        <Label Style="{StaticResource Caption}" Text="{loc:Loc Settings_ConnectionHint}" />
+        <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="4">
+                <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Settings_BaseUrl}" />
+                <Entry Placeholder="http://192.168.0.10:5109/" Text="{Binding ApiBaseUrl}" />
+                <HorizontalStackLayout Margin="0,8,0,0" Spacing="8">
+                    <Button Command="{Binding LoadDefaultsEmulatorCommand}" Style="{StaticResource SecondaryButton}" Text="{loc:Loc Settings_Emulator}" />
+                    <Button Command="{Binding LoadDefaultsLocalhostCommand}" Style="{StaticResource SecondaryButton}" Text="{loc:Loc Settings_Localhost}" />
+                </HorizontalStackLayout>
+                <Button Margin="0,8,0,0" Command="{Binding SaveCommand}" Text="{loc:Loc Settings_SaveUrl}" />
+                <Label Text="{Binding Message}" TextColor="{StaticResource Primary}" />
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+</ContentView>

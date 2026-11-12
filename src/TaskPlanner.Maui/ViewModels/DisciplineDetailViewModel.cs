@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
 using TaskPlanner.Maui;
 
 namespace TaskPlanner.Maui.ViewModels;
@@ -41,7 +42,7 @@ public partial class DisciplineDetailViewModel : ObservableObject
             Item = await _api.GetDisciplineAsync(id);
             if (Item is null)
             {
-                ErrorMessage = "Дисципліну не знайдено.";
+                ErrorMessage = Localizer.Current["Disciplines_NotFound"];
             }
         }
         catch (ApiException ex)
@@ -77,11 +78,12 @@ public partial class DisciplineDetailViewModel : ObservableObject
             return;
         }
 
+        var text = Localizer.Current;
         var confirm = await Shell.Current.DisplayAlert(
-            "Видалити?",
-            $"Видалити дисципліну «{Item.Name}»? Пов’язані завдання стануть недоступні.",
-            "Видалити",
-            "Скасувати");
+            text["Common_DeleteTitle"],
+            text.Format("Disciplines_DeleteBody", Item.Name),
+            text["Common_Delete"],
+            text["Common_Cancel"]);
         if (!confirm)
         {
             return;

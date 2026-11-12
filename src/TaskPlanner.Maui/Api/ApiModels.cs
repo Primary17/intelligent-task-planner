@@ -33,6 +33,13 @@ public sealed record UpdateDisciplineRequest(
     string? Description,
     string Color);
 
+public sealed record TimeIntervalDto(TimeOnly StartTime, TimeOnly EndTime);
+
+public sealed record EffectiveDayDto(
+    DateOnly Date,
+    string Source,
+    IReadOnlyList<TimeIntervalDto> Intervals);
+
 public sealed record StudyTaskDto(
     Guid Id,
     Guid DisciplineId,

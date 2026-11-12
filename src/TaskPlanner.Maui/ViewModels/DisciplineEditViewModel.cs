@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TaskPlanner.Maui.Api;
+using TaskPlanner.Maui.Localization;
 
 namespace TaskPlanner.Maui.ViewModels;
 
@@ -21,18 +22,25 @@ public partial class DisciplineEditViewModel : ObservableObject
 
     [ObservableProperty] private string? _errorMessage;
 
-    [ObservableProperty] private string _title = "Нова дисципліна";
+    [ObservableProperty] private string _title = "";
+
+    private bool _editing;
 
     public DisciplineEditViewModel(TaskPlannerApiClient api)
     {
         _api = api;
+        ApplyTitle();
+        Localizer.Current.LanguageChanged += (_, _) => ApplyTitle();
     }
+
+    private void ApplyTitle() => Title = Localizer.Current[_editing ? "Tasks_Editing" : "Disciplines_New"];
 
     partial void OnDisciplineIdChanged(string? value)
     {
         if (string.IsNullOrEmpty(value))
         {
-            Title = "Нова дисципліна";
+            _editing = false;
+            ApplyTitle();
             Name = "";
             Description = "";
             Color = "#3B82F6";
@@ -55,11 +63,12 @@ public partial class DisciplineEditViewModel : ObservableObject
             var d = await _api.GetDisciplineAsync(id);
             if (d is null)
             {
-                ErrorMessage = "Не знайдено.";
+                ErrorMessage = Localizer.Current["Common_NotFound"];
                 return;
             }
 
-            Title = "Редагування";
+            _editing = true;
+            ApplyTitle();
             Name = d.Name;
             Description = d.Description ?? "";
             Color = d.Color;
@@ -80,7 +89,7 @@ public partial class DisciplineEditViewModel : ObservableObject
         ErrorMessage = null;
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ErrorMessage = "Вкажіть назву.";
+            ErrorMessage = Localizer.Current["Common_NeedTitle"];
             return;
         }
 
