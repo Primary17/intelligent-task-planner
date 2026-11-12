@@ -89,6 +89,34 @@ public sealed class ScheduleTests
     }
 
     [Fact]
+    public async Task Generate_UnlockedPlannedSessionOutsideHorizon_StaysAndReducesRemainingWork()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 180, deadline: Monday.AddDays(1));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 18));
+        var outsideStart = Monday.AddDays(-1).AddHours(17);
+        var outsideId = await InsertSessionAsync(task.Id, outsideStart, outsideStart.AddHours(1), isLocked: false);
+
+        var plan = await GenerateAsync(client);
+
+        var created = Assert.Single(plan.Sessions);
+        Assert.NotEqual(outsideId, created.Id);
+        Assert.Equal(Monday.AddHours(17), created.StartAtUtc);
+        Assert.Equal(60, created.PlannedMinutes);
+
+        var left = Assert.Single(plan.Unscheduled);
+        Assert.Equal(task.Id, left.StudyTaskId);
+        Assert.Equal(120, left.RemainingMinutes);
+        Assert.Equal(60, left.ScheduledMinutes);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContextBase>();
+        var stored = await db.StudySessions.Where(s => s.StudyTaskId == task.Id).ToListAsync();
+        Assert.Equal(2, stored.Count);
+        Assert.Contains(stored, session => session.Id == outsideId && !session.IsLocked && session.PlannedMinutes == 60);
+    }
+
+    [Fact]
     public async Task Generate_KeepsLockedSession()
     {
         var client = await _factory.CreateUserClientAsync();
@@ -135,6 +163,38 @@ public sealed class ScheduleTests
             Monday, HorizonEnd, null, null));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Generate_DaysBounds_AreEnforced()
+    {
+        var client = await _factory.CreateUserClientAsync();
+
+        var tooSmall = await client.PostJsonAsync("/api/schedule/generate", new GenerateScheduleRequest(null, null, 0, null));
+        var tooLarge = await client.PostJsonAsync("/api/schedule/generate", new GenerateScheduleRequest(null, null, 93, null));
+        var upperBound = await client.PostJsonAsync("/api/schedule/generate", new GenerateScheduleRequest(null, null, 92, "UTC"));
+        var emptyRange = await client.PostJsonAsync("/api/schedule/generate", new GenerateScheduleRequest(null, null, null, null));
+
+        Assert.Equal(HttpStatusCode.BadRequest, tooSmall.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, tooLarge.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, emptyRange.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, upperBound.StatusCode);
+    }
+
+    [Fact]
+    public async Task Generate_WithoutWindows_ReportsTheWholeTaskUnscheduled()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 60, deadline: Monday.AddDays(3));
+
+        var plan = await GenerateAsync(client);
+
+        Assert.Empty(plan.Sessions);
+        var left = Assert.Single(plan.Unscheduled);
+        Assert.Equal(task.Id, left.StudyTaskId);
+        Assert.Equal(60, left.RemainingMinutes);
+        Assert.Equal(0, left.ScheduledMinutes);
+        Assert.Equal(0, await CountSessionsAsync(task.Id));
     }
 
     private static AvailabilityWindowRequest Window(DayOfWeek day, int fromHour, int toHour) =>
