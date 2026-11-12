@@ -10,6 +10,7 @@
 |-----------|------------|
 | Runtime | .NET 8 |
 | API | ASP.NET Core Web API |
+| Frontend | React, TypeScript, Vite |
 | Дані | Entity Framework Core 8 |
 | СУБД | **SQLite** (локально) / **PostgreSQL** (сервер) |
 | Валідація | FluentValidation |
@@ -95,6 +96,38 @@ dotnet run --launch-profile http --project src/TaskPlanner.Api/TaskPlanner.Api.c
 - Swagger: [http://localhost:5109/swagger](http://localhost:5109/swagger)
 - У профілі `http` задано `JWT_SECRET` і `Database__Provider=Sqlite`.
 
+### Запуск React-клієнта
+
+Клієнтська частина застосунку реалізована на React, TypeScript і Vite та розташована в каталозі `client/`.
+
+Для запуску необхідно встановити Node.js і npm та запустити ASP.NET Core API за інструкцією з попереднього розділу.
+
+**1. Запуск frontend**
+
+Відкрийте другий термінал із кореня репозиторію та виконайте:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+React-клієнт буде доступний за адресою `http://localhost:5173`.
+
+**2. Взаємодія з API**
+
+У режимі розробки Vite використовує proxy. Запити до `/api` автоматично перенаправляються на `http://localhost:5109`.
+
+За потреби адресу backend можна змінити через змінну середовища `VITE_API_URL` перед запуском Vite.
+
+**3. Production-збірка**
+
+Для перевірки збірки клієнта виконайте в каталозі `client/`:
+
+```bash
+npm run build
+```
+
 ### PostgreSQL
 
 ```bash
@@ -173,7 +206,30 @@ JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database updat
 |-------|--------|------|
 | `admin@taskplanner.local` | `Admin123!` | Admin (seed у Development) |
 
-Інші користувачі — через `POST /api/auth/register`.
+Студентські акаунти створюйте через `POST /api/auth/register`.
+
+Пароль admin у production **не** використовуйте; змініть seed або створюйте admin вручну.
+
+---
+
+## Звіти та навчальні матеріали
+
+| ЛР | Здача | Для себе |
+|----|-------|----------|
+| 1 | [`МПП_ЛР_1_Звіт_для_здачі.md`](МПП_ЛР_1_Звіт_для_здачі.md) | [`МПП_ЛР_1_Навчальний_звіт.md`](МПП_ЛР_1_Навчальний_звіт.md) |
+| 2 | [`МПП_ЛР_2_Звіт_для_здачі.md`](МПП_ЛР_2_Звіт_для_здачі.md) | [`МПП_ЛР_2_Навчальний_звіт.md`](МПП_ЛР_2_Навчальний_звіт.md) |
+| 3 | [`МПП_ЛР_3_Звіт_для_здачі.md`](МПП_ЛР_3_Звіт_для_здачі.md) | [`МПП_ЛР_3_Навчальний_звіт.md`](МПП_ЛР_3_Навчальний_звіт.md) |
+
+---
+
+## Дорожня карта
+
+- [x] ЛР1 — EF Core, multi-DB, migrations, LINQ
+- [x] ЛР2 — REST, DTO, сервісний шар, Swagger
+- [x] ЛР3 — JWT, User/Admin, policies, ізоляція ресурсів
+- [ ] ЛР4 — .NET MAUI клієнт
+- [ ] ЛР5 — Docker / Compose
+- [x] STEM — React UI, управління завданнями, навчальні сесії, календар, перевірка навантаження та профіль користувача
 
 ---
 

@@ -63,4 +63,28 @@ public sealed class AuthController : ControllerBase
         var profile = await _auth.GetProfileAsync(_currentUser.UserId, cancellationToken);
         return profile is null ? NotFound() : Ok(profile);
     }
+
+    [HttpPut("me")]
+    [Authorize(Policy = AuthPolicies.AuthenticatedUser)]
+    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserProfileDto>> UpdateMe(
+        [FromBody] UpdateProfileRequest request,
+        CancellationToken cancellationToken)
+    {
+        var profile = await _auth.UpdateProfileAsync(_currentUser.UserId, request, cancellationToken);
+        return profile is null ? NotFound() : Ok(profile);
+    }
+
+    [HttpPost("change-password")]
+    [Authorize(Policy = AuthPolicies.AuthenticatedUser)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var changed = await _auth.ChangePasswordAsync(_currentUser.UserId, request, cancellationToken);
+        return changed ? NoContent() : NotFound();
+    }
 }
