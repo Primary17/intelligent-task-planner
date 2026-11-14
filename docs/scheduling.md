@@ -46,8 +46,8 @@ An invalid local time (a DST gap) is skipped. An ambiguous local time uses the e
 Each task is filled greedily from the earliest free slot that starts before its deadline.
 
 - A session is at most `MaxSessionMinutes` (default 120). A six-hour task becomes several blocks.
-- A session is at least `MinSessionMinutes` (default 30), except when the leftover work itself is shorter and the slot can hold it.
-- A slot shorter than the minimum is left for a later task.
+- A session is at least `MinSessionMinutes` (default 30), except when the leftover work itself is shorter and the slot can hold it. Seventy minutes of work, a 60-minute block, and a later block become a 60-minute session and a 10-minute session.
+- A slot shorter than the minimum is left for a later task when the work still left is at least the minimum. The short final piece may use a short slot.
 - Nothing is placed at or after the deadline. The part of a slot after the deadline stays free.
 
 If the free time runs out, the result lists that task under `Unscheduled` with `RemainingMinutes` and how many of them were `ScheduledMinutes`. Tasks that fit completely are omitted from that list. Frozen sessions are not copied into `Sessions`; they stay where they are.

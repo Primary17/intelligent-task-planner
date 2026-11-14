@@ -6,6 +6,10 @@ public sealed record RegisterRequest(string Email, string DisplayName, string Pa
 
 public sealed record LoginRequest(string Email, string Password);
 
+public sealed record UpdateProfileRequest(string DisplayName);
+
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
 public sealed record AuthResponse(
     string AccessToken,
     DateTime ExpiresAtUtc,

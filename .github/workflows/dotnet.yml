@@ -28,3 +28,6 @@ jobs:
 
       - name: Build
         run: dotnet build TaskPlanner.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test TaskPlanner.sln -c Release --no-build
