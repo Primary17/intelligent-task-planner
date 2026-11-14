@@ -29,4 +29,15 @@ public sealed class ScheduleController : ControllerBase
         var plan = await _schedule.GenerateAsync(request, cancellationToken);
         return Ok(plan);
     }
+
+    [HttpPost("replan")]
+    [ProducesResponseType(typeof(ReplanScheduleResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ReplanScheduleResponse>> Replan(
+        [FromBody] GenerateScheduleRequest request,
+        CancellationToken cancellationToken)
+    {
+        var plan = await _schedule.ReplanAsync(request, cancellationToken);
+        return Ok(plan);
+    }
 }

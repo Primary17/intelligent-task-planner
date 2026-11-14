@@ -203,9 +203,10 @@ public sealed class ScheduleTests
     private static async Task<StudyTaskDto> CreateTaskAsync(
         HttpClient client,
         int estimatedMinutes,
-        DateTime deadline)
+        DateTime deadline,
+        string disciplineName = "OS")
     {
-        var discipline = await (await client.PostJsonAsync("/api/disciplines", new CreateDisciplineRequest("OS", null, "#112233")))
+        var discipline = await (await client.PostJsonAsync("/api/disciplines", new CreateDisciplineRequest(disciplineName, null, "#112233")))
             .ReadAsync<DisciplineDto>();
         return await (await client.PostJsonAsync("/api/tasks", new CreateStudyTaskRequest(
             discipline.Id, "Lab", deadline, 3, TaskPriority.High, estimatedMinutes))).ReadAsync<StudyTaskDto>();
@@ -226,7 +227,14 @@ public sealed class ScheduleTests
         return await db.StudySessions.CountAsync(s => s.StudyTaskId == taskId);
     }
 
-    private async Task<Guid> InsertSessionAsync(Guid taskId, DateTime start, DateTime end, bool isLocked)
+    private async Task<Guid> InsertSessionAsync(
+        Guid taskId,
+        DateTime start,
+        DateTime end,
+        bool isLocked = false,
+        SessionStatus status = SessionStatus.Planned,
+        int plannedMinutes = 60,
+        int? actualMinutes = null)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContextBase>();
@@ -236,12 +244,200 @@ public sealed class ScheduleTests
             StudyTaskId = taskId,
             StartAtUtc = start,
             EndAtUtc = end,
-            PlannedMinutes = 60,
-            Status = SessionStatus.Planned,
+            PlannedMinutes = plannedMinutes,
+            ActualMinutes = actualMinutes,
+            Status = status,
             IsLocked = isLocked
         };
         db.StudySessions.Add(session);
         await db.SaveChangesAsync();
         return session.Id;
+    }
+
+    [Fact]
+    public async Task Replan_MovesMissedSessionToTheNextFreeDay()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 120, deadline: Monday.AddDays(4));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Tuesday, 17, 19));
+        await client.PostJsonAsync("/api/availability/exceptions", new AvailabilityExceptionRequest(
+            DateOnly.FromDateTime(Monday), AvailabilityExceptionKind.Unavailable, null, null, null));
+        var missedId = await InsertSessionAsync(
+            task.Id, Monday.AddHours(17), Monday.AddHours(19), status: SessionStatus.Missed, plannedMinutes: 120);
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(missedId, Assert.Single(plan.Removed).Id);
+        var created = Assert.Single(plan.Created);
+        Assert.Equal(Monday.AddDays(1).AddHours(17), created.StartAtUtc);
+        Assert.Equal(120, created.PlannedMinutes);
+        Assert.Equal(SessionStatus.Planned, created.Status);
+        Assert.Empty(plan.Stayed);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContextBase>();
+        var stored = await db.StudySessions.SingleAsync(s => s.StudyTaskId == task.Id);
+        Assert.Equal(created.Id, stored.Id);
+        Assert.Equal(SessionStatus.Planned, stored.Status);
+    }
+
+    [Fact]
+    public async Task Replan_KeepsCompletedSessionAndPlacesTheRemainder()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 120, deadline: Monday.AddDays(3));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        var completedId = await InsertSessionAsync(
+            task.Id,
+            Monday.AddHours(17),
+            Monday.AddHours(18),
+            status: SessionStatus.Completed,
+            actualMinutes: 60);
+
+        var plan = await ReplanAsync(client);
+
+        var stayed = Assert.Single(plan.Stayed);
+        Assert.Equal(completedId, stayed.Id);
+        Assert.Equal(Monday.AddHours(17), stayed.StartAtUtc);
+        Assert.Equal(SessionStatus.Completed, stayed.Status);
+        Assert.Empty(plan.Removed);
+        var created = Assert.Single(plan.Created);
+        Assert.Equal(Monday.AddHours(18), created.StartAtUtc);
+        Assert.Equal(60, created.PlannedMinutes);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContextBase>();
+        var completed = await db.StudySessions.SingleAsync(s => s.Id == completedId);
+        Assert.Equal(SessionStatus.Completed, completed.Status);
+        Assert.Equal(Monday.AddHours(17), completed.StartAtUtc);
+        Assert.Equal(60, completed.ActualMinutes);
+    }
+
+    [Fact]
+    public async Task Replan_DoesNotAddTaskActualToTheSameCompletedSession()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 180, deadline: Monday.AddDays(4));
+        await client.PutJsonAsync($"/api/tasks/{task.Id}", new UpdateStudyTaskRequest(
+            "Lab", task.DeadlineUtc, task.Complexity, task.Priority, task.EstimatedMinutes, 60, StudyTaskStatus.InProgress));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Tuesday, 17, 19));
+        var completedId = await InsertSessionAsync(
+            task.Id,
+            Monday.AddHours(17),
+            Monday.AddHours(18),
+            status: SessionStatus.Completed,
+            actualMinutes: 60);
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(completedId, Assert.Single(plan.Stayed).Id);
+        Assert.Empty(plan.Removed);
+        Assert.Equal(120, plan.Created.Sum(session => session.PlannedMinutes));
+        Assert.Equal(
+            new[] { Monday.AddHours(18), Monday.AddDays(1).AddHours(17) },
+            plan.Created.Select(session => session.StartAtUtc));
+        Assert.Empty(plan.Unscheduled);
+    }
+
+    [Fact]
+    public async Task Replan_CountsTheLargerActualMeasurement()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 180, deadline: Monday.AddDays(4));
+        await client.PutJsonAsync($"/api/tasks/{task.Id}", new UpdateStudyTaskRequest(
+            "Lab", task.DeadlineUtc, task.Complexity, task.Priority, task.EstimatedMinutes, 30, StudyTaskStatus.InProgress));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Tuesday, 17, 19));
+        await InsertSessionAsync(
+            task.Id,
+            Monday.AddHours(17),
+            Monday.AddHours(18),
+            status: SessionStatus.Completed,
+            actualMinutes: 60);
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(120, plan.Created.Sum(session => session.PlannedMinutes));
+        Assert.Empty(plan.Unscheduled);
+    }
+
+    [Fact]
+    public async Task Replan_PlacesNewTaskInTheNearestSlot()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var existing = await CreateTaskAsync(client, estimatedMinutes: 60, deadline: Monday.AddDays(4));
+        var added = await CreateTaskAsync(client, estimatedMinutes: 60, deadline: Monday.AddDays(1), disciplineName: "DB");
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        var oldId = await InsertSessionAsync(existing.Id, Monday.AddDays(1).AddHours(17), Monday.AddDays(1).AddHours(18));
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(oldId, Assert.Single(plan.Removed).Id);
+        Assert.Equal(added.Id, plan.Created[0].StudyTaskId);
+        Assert.Equal(Monday.AddHours(17), plan.Created[0].StartAtUtc);
+        Assert.Equal(existing.Id, plan.Created[1].StudyTaskId);
+        Assert.Equal(Monday.AddHours(18), plan.Created[1].StartAtUtc);
+    }
+
+    [Fact]
+    public async Task Replan_DoesNotMoveLockedSession()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 120, deadline: Monday.AddDays(3));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 19));
+        var lockedId = await InsertSessionAsync(task.Id, Monday.AddHours(17), Monday.AddHours(18), isLocked: true);
+
+        var plan = await ReplanAsync(client);
+
+        var stayed = Assert.Single(plan.Stayed);
+        Assert.Equal(lockedId, stayed.Id);
+        Assert.True(stayed.IsLocked);
+        Assert.Equal(Monday.AddHours(17), stayed.StartAtUtc);
+        Assert.Empty(plan.Removed);
+        Assert.Equal(Monday.AddHours(18), Assert.Single(plan.Created).StartAtUtc);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContextBase>();
+        var locked = await db.StudySessions.SingleAsync(s => s.Id == lockedId);
+        Assert.True(locked.IsLocked);
+        Assert.Equal(Monday.AddHours(17), locked.StartAtUtc);
+        Assert.Equal(Monday.AddHours(18), locked.EndAtUtc);
+    }
+
+    [Fact]
+    public async Task Replan_ReportsMinutesThatDoNotFit()
+    {
+        var client = await _factory.CreateUserClientAsync();
+        var task = await CreateTaskAsync(client, estimatedMinutes: 180, deadline: Monday.AddDays(1));
+        await client.PostJsonAsync("/api/availability/windows", Window(DayOfWeek.Monday, 17, 18));
+
+        var plan = await ReplanAsync(client);
+
+        Assert.Equal(60, Assert.Single(plan.Created).PlannedMinutes);
+        var left = Assert.Single(plan.Unscheduled);
+        Assert.Equal(task.Id, left.StudyTaskId);
+        Assert.Equal(180, left.RemainingMinutes);
+        Assert.Equal(60, left.ScheduledMinutes);
+    }
+
+    [Fact]
+    public async Task Replan_InvalidHorizon_ReturnsBadRequest()
+    {
+        var client = await _factory.CreateUserClientAsync();
+
+        var response = await client.PostJsonAsync("/api/schedule/replan", new GenerateScheduleRequest(
+            HorizonEnd, Monday, null, null));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private static async Task<ReplanScheduleResponse> ReplanAsync(HttpClient client)
+    {
+        var response = await client.PostJsonAsync("/api/schedule/replan", new GenerateScheduleRequest(
+            Monday, HorizonEnd, null, "UTC"));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return await response.ReadAsync<ReplanScheduleResponse>();
     }
 }

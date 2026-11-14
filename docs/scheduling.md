@@ -61,3 +61,29 @@ The horizon is either `from` and `to` (UTC, half-open `[from, to)`, at most 92 d
 Idempotency inside the horizon: unlocked `Planned` sessions of unfinished tasks that overlap `[from, to)` are deleted and replaced. A second call with the same inputs does not add another copy of that work. `Completed`, `Missed`, and `IsLocked` sessions stay where they are. Unlocked `Planned` sessions that lie fully outside the horizon also stay, and their minutes are subtracted from the work still to place, so a later horizon does not schedule those minutes again.
 
 The response lists the sessions created by this call, tasks that still have unplaced minutes (`unscheduled.remainingMinutes` is the work this call tried to place, `scheduledMinutes` is how much of it was written), and overlaps between frozen sessions (`conflicts`).
+
+## Replanning
+
+`POST /api/schedule/replan` takes the same horizon as generate and rebuilds it after a missed session, a deadline change, a new task, or updated actual time.
+
+Sessions that stay (`stayed` when they overlap the horizon):
+
+- `Completed`
+- any session with `IsLocked`
+
+Sessions that are deleted and returned in `removed`:
+
+- unlocked `Missed` sessions that overlap the horizon
+- unlocked `Planned` sessions that overlap the horizon and have not ended (`EndAtUtc` is later than now)
+
+Unlocked `Planned` sessions outside the horizon stay. Their minutes are treated as already placed, so this horizon does not schedule them again.
+
+Minutes placed by replan are the same quantity generate places:
+
+```
+max(0, EstimatedMinutes - unlocked Planned minutes outside the horizon - max(ActualMinutes, frozen coverage))
+```
+
+`StudyTask.ActualMinutes` and the time logged on a completed session are two measurements of the same work, not separate piles. The larger one counts. A task logged at 60 minutes with a completed session also logged at 60 still has 60 minutes of progress, so a 180-minute estimate has 120 minutes left. Completed coverage is `ActualMinutes` on that session, or `PlannedMinutes` when actual time is missing. Locked coverage is `PlannedMinutes`. Frozen coverage is the sum of those session figures.
+
+`created` lists the new `Planned` rows. `unscheduled` and `conflicts` mean the same thing as on generate.
