@@ -12,6 +12,7 @@
 |-----------|------------|
 | Runtime | .NET 8 |
 | API | ASP.NET Core Web API |
+| Frontend | React, TypeScript, Vite |
 | Дані | Entity Framework Core 8 |
 | СУБД | **SQLite** (локально) / **PostgreSQL** (сервер) |
 | Валідація | FluentValidation |
@@ -75,6 +76,38 @@ dotnet run --launch-profile http --project src/TaskPlanner.Api/TaskPlanner.Api.c
 
 - Swagger: [http://localhost:5109/swagger](http://localhost:5109/swagger)
 - У профілі `http` уже задано `JWT_SECRET` і `Database__Provider=Sqlite`.
+
+### Запуск React-клієнта
+
+Клієнтська частина застосунку реалізована на React, TypeScript і Vite та розташована в каталозі `client/`.
+
+Для запуску необхідно встановити Node.js і npm та запустити ASP.NET Core API за інструкцією з попереднього розділу.
+
+**1. Запуск frontend**
+
+Відкрийте другий термінал із кореня репозиторію та виконайте:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+React-клієнт буде доступний за адресою `http://localhost:5173`.
+
+**2. Взаємодія з API**
+
+У режимі розробки Vite використовує proxy. Запити до `/api` автоматично перенаправляються на `http://localhost:5109`.
+
+За потреби адресу backend можна змінити через змінну середовища `VITE_API_URL` перед запуском Vite.
+
+**3. Production-збірка**
+
+Для перевірки збірки клієнта виконайте в каталозі `client/`:
+
+```bash
+npm run build
+```
 
 ### PostgreSQL
 
@@ -190,7 +223,7 @@ JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database updat
 - [x] ЛР3 — JWT, User/Admin, policies, ізоляція ресурсів
 - [ ] ЛР4 — .NET MAUI клієнт
 - [ ] ЛР5 — Docker / Compose
-- [ ] STEM — React UI, планувальник, календар (за `Planner.md`)
+- [x] STEM — React UI, управління завданнями, навчальні сесії, календар, перевірка навантаження та профіль користувача
 
 ---
 
