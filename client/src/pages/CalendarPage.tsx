@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { availabilityApi, disciplinesApi, planningApi, sessionsApi, tasksApi } from '../api/endpoints';
+import { availabilityApi, disciplinesApi, planningApi, scheduleApi, sessionsApi, tasksApi } from '../api/endpoints';
+import { errorMessage } from '../api/http';
 import type { StudySession } from '../api/types';
 import {
   DAYS, addDays, formatDayMonth, formatMinutes, localUtcOffsetMinutes, parseUtc, startOfWeek, timeToMinutes, toDateKey,
@@ -8,6 +9,7 @@ import {
 import { CapacityAlert } from '../components/CapacityAlert';
 import { ErrorBanner, Loading } from '../components/Feedback';
 import { SESSION_STATUS_LABELS } from '../lib/labels';
+import { browserTimeZone, weekHorizon } from '../lib/schedule';
 import { spanOnDay } from '../lib/sessions';
 import { useLoad } from '../lib/useLoad';
 import { NewSessionModal, SessionModal } from './SessionModals';
@@ -32,6 +34,8 @@ export function CalendarPage() {
 
   const [editing, setEditing] = useState<StudySession | null>(null);
   const [adding, setAdding] = useState(false);
+  const [scheduling, setScheduling] = useState<'generate' | 'replan' | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
 
   const colorOf = (id: string) => disciplines.data?.find((d) => d.id === id)?.color ?? '#94a3b8';
 
@@ -74,6 +78,23 @@ export function CalendarPage() {
     setAdding(false);
   };
 
+  const horizon = weekHorizon(weekStart, new Date());
+
+  const runSchedule = async (kind: 'generate' | 'replan') => {
+    if (!horizon) return;
+    setScheduling(kind);
+    setScheduleError(null);
+    try {
+      const request = { ...horizon, timeZoneId: browserTimeZone() };
+      await (kind === 'generate' ? scheduleApi.generate(request) : scheduleApi.replan(request));
+      reloadAll();
+    } catch (e) {
+      setScheduleError(errorMessage(e));
+    } finally {
+      setScheduling(null);
+    }
+  };
+
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
   const bodyHeight = hours.length * HOUR_PX;
   const offset = (minutes: number) => ((minutes - startHour * 60) / 60) * HOUR_PX;
@@ -92,7 +113,23 @@ export function CalendarPage() {
       <div className="page-header">
         <h1>Календар</h1>
         <div className="week-nav">
-          <button className="btn btn-primary" onClick={() => setAdding(true)}>+ Сесія</button>
+          <button
+            className="btn btn-primary"
+            disabled={!horizon || scheduling !== null}
+            title="Розставити сесії у вільний час цього тижня. Незакріплені заплановані сесії тижня буде замінено"
+            onClick={() => runSchedule('generate')}
+          >
+            {scheduling === 'generate' ? 'Формуємо…' : 'Сформувати розклад'}
+          </button>
+          <button
+            className="btn btn-ghost"
+            disabled={!horizon || scheduling !== null}
+            title="Прибрати пропущені й майбутні незакріплені сесії та розставити залишок знову"
+            onClick={() => runSchedule('replan')}
+          >
+            {scheduling === 'replan' ? 'Перепланування…' : 'Перепланувати'}
+          </button>
+          <button className="btn btn-ghost" onClick={() => setAdding(true)}>+ Сесія</button>
           <button className="btn btn-ghost" onClick={() => setWeekStart(addDays(weekStart, -7))}>←</button>
           <button className="btn btn-ghost" onClick={() => setWeekStart(startOfWeek(new Date()))}>Сьогодні</button>
           <button className="btn btn-ghost" onClick={() => setWeekStart(addDays(weekStart, 7))}>→</button>
@@ -106,6 +143,7 @@ export function CalendarPage() {
         )}
       </p>
       <ErrorBanner message={availability.error ?? tasks.error ?? disciplines.error ?? sessions.error} />
+      <ErrorBanner message={scheduleError} />
       <CapacityAlert report={capacity.data} />
       {availability.loading && !availability.data && <Loading />}
 
