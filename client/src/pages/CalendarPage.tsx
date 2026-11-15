@@ -8,8 +8,9 @@ import {
 } from '../lib/dates';
 import { CapacityAlert } from '../components/CapacityAlert';
 import { ErrorBanner, Loading } from '../components/Feedback';
+import { ScheduleReport } from '../components/ScheduleReport';
 import { SESSION_STATUS_LABELS } from '../lib/labels';
-import { browserTimeZone, weekHorizon } from '../lib/schedule';
+import { browserTimeZone, summarizeGenerate, summarizeReplan, weekHorizon, type ScheduleSummary } from '../lib/schedule';
 import { spanOnDay } from '../lib/sessions';
 import { useLoad } from '../lib/useLoad';
 import { NewSessionModal, SessionModal } from './SessionModals';
@@ -36,6 +37,7 @@ export function CalendarPage() {
   const [adding, setAdding] = useState(false);
   const [scheduling, setScheduling] = useState<'generate' | 'replan' | null>(null);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [report, setReport] = useState<ScheduleSummary | null>(null);
 
   const colorOf = (id: string) => disciplines.data?.find((d) => d.id === id)?.color ?? '#94a3b8';
 
@@ -82,11 +84,17 @@ export function CalendarPage() {
 
   const runSchedule = async (kind: 'generate' | 'replan') => {
     if (!horizon) return;
+    const names = {
+      taskTitle: (id: string) => tasks.data?.find((t) => t.id === id)?.title,
+      sessionTitle: (id: string) => sessions.data?.find((s) => s.id === id)?.taskTitle,
+    };
     setScheduling(kind);
     setScheduleError(null);
     try {
       const request = { ...horizon, timeZoneId: browserTimeZone() };
-      await (kind === 'generate' ? scheduleApi.generate(request) : scheduleApi.replan(request));
+      setReport(kind === 'generate'
+        ? summarizeGenerate(await scheduleApi.generate(request), names)
+        : summarizeReplan(await scheduleApi.replan(request), names));
       reloadAll();
     } catch (e) {
       setScheduleError(errorMessage(e));
@@ -144,6 +152,7 @@ export function CalendarPage() {
       </p>
       <ErrorBanner message={availability.error ?? tasks.error ?? disciplines.error ?? sessions.error} />
       <ErrorBanner message={scheduleError} />
+      {report && <ScheduleReport summary={report} onClose={() => setReport(null)} />}
       <CapacityAlert report={capacity.data} />
       {availability.loading && !availability.data && <Loading />}
 

@@ -136,3 +136,7 @@ tr.done .task-title { text-decoration: line-through; color: var(--muted); }
   .form-row { grid-template-columns: 1fr; }
   .week-row { flex-direction: column; align-items: flex-start; gap: .4rem; }
 }
+
+.schedule-report-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.schedule-report p { margin: .4rem 0; }
+.report-list { margin: .25rem 0 .25rem 1.1rem; padding: 0; }
