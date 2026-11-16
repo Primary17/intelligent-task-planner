@@ -1,33 +1,37 @@
 # Task Planner
 
-Веб-API та клієнти для **планування навчальних завдань**: дисципліни, дедлайни, пріоритети, статуси; у моделі також закладені дані для доступного часу та навчальних сесій (розвиток за [`CONCEPT.md`](CONCEPT.md)).
+Task Planner helps students organise university work: disciplines, deadlines, priorities, weekly availability, and study sessions. A .NET backend exposes a REST API; **React** is the primary web client for planning; **.NET MAUI** is a mobile companion for tasks, reminders, and read-only upcoming sessions.
+
+Product vision and scope are described in [`CONCEPT.md`](CONCEPT.md). Scheduling rules and algorithm behaviour are in [`docs/scheduling.md`](docs/scheduling.md).
 
 ---
 
-## Технології
+## Technology stack
 
-| Компонент | Технологія |
+| Component | Technology |
 |-----------|------------|
 | Runtime | .NET 8 |
 | API | ASP.NET Core Web API |
-| Frontend | React, TypeScript, Vite |
-| Дані | Entity Framework Core 8 |
-| СУБД | **SQLite** (локально) / **PostgreSQL** (сервер) |
-| Валідація | FluentValidation |
-| Автентифікація | JWT Bearer, ASP.NET Identity PasswordHasher |
-| Документація API | Swagger / OpenAPI |
-| Клієнт (GUI) | .NET MAUI 8 |
+| Web client | React 18, TypeScript, Vite |
+| Mobile client | .NET MAUI 8 |
+| Data access | Entity Framework Core 8 |
+| Database | **SQLite** (local dev) / **PostgreSQL** (server) |
+| Validation | FluentValidation |
+| Authentication | JWT Bearer, ASP.NET Core Identity password hashing |
+| API docs | Swagger / OpenAPI |
 
 ---
 
-## Структура репозиторію
+## Repository layout
 
 ```
 TaskPlanner/
-├── TaskPlanner.sln          # API + Domain / Application / Infrastructure
-├── TaskPlanner.Maui.sln     # лише проєкт MAUI (потрібні workload’и MAUI)
-├── client/                  # React: календар, сесії, профіль
+├── TaskPlanner.sln              # API and backend layers
+├── TaskPlanner.Maui.sln         # MAUI app only (requires MAUI workloads)
+├── client/                      # React SPA
 ├── CONCEPT.md
+├── docs/
+│   └── scheduling.md            # Planner rules and API semantics
 └── src/
     ├── TaskPlanner.Domain/
     ├── TaskPlanner.Application/
@@ -36,86 +40,71 @@ TaskPlanner/
     └── TaskPlanner.Maui/
 ```
 
-**Залежності бекенду:** `Api → Infrastructure → Application → Domain`.
+Backend dependency flow: `Api → Infrastructure → Application → Domain`.
 
 ---
 
-## Модель даних (скорочено)
+## Clients at a glance
 
-| Сутність | Призначення |
-|----------|-------------|
-| `User` | обліковий запис |
-| `Discipline` | навчальна дисципліна |
-| `StudyTask` | завдання |
-| `AvailabilityWindow` / `AvailabilityException` | доступний час |
-| `StudySession` | навчальна сесія |
+| Capability | React (web) | MAUI (mobile) |
+|------------|-------------|---------------|
+| Login / register | Yes | Yes |
+| Disciplines & tasks CRUD | Yes | Yes |
+| Weekly availability & exceptions | Yes | No |
+| Manual study sessions | Yes | No |
+| **Generate / replan schedule** | Yes | No (by design) |
+| Calendar view | Yes | No |
+| Upcoming sessions (read-only) | Yes (calendar) | Yes (dedicated tab) |
+| Local deadline / study reminders | — | Android / iOS |
+| Capacity / workload hints | Yes | No |
 
-Перемикання СУБД: `Database:Provider` = `Sqlite` | `PostgreSQL`; окремі міграції у `Persistence/Migrations/Sqlite` та `.../PostgreSQL`.
-
----
-
-## Вимоги
-
-- [.NET SDK 8](https://dotnet.microsoft.com/download)
-- PostgreSQL — якщо обрано цей провайдер
-- Для міграцій EF: `dotnet tool install -g dotnet-ef`
-- Для MAUI-клієнта: [workload’и .NET MAUI](https://learn.microsoft.com/dotnet/maui/get-started/installation)
+The web calendar sends `POST /api/schedule/generate` and `POST /api/schedule/replan`. The mobile app consumes sessions produced by the API; it does not trigger automatic planning.
 
 ---
 
-## Швидкий старт
+## Data model (short)
 
-### Бекенд
+| Entity | Role |
+|--------|------|
+| `User` | Account |
+| `Discipline` | Course / subject |
+| `StudyTask` | Assignment with deadline, estimate, priority, status |
+| `AvailabilityWindow` / `AvailabilityException` | When the user can study |
+| `StudySession` | Planned or completed block of work on a task |
+
+Switch database provider via `Database:Provider` (`Sqlite` | `PostgreSQL`). EF migrations live under `src/TaskPlanner.Infrastructure/Persistence/Migrations/Sqlite` and `.../PostgreSQL`.
+
+---
+
+## Prerequisites
+
+- [.NET SDK 8](https://dotnet.microsoft.com/download) (see `global.json` in projects if present)
+- [Node.js](https://nodejs.org/) and npm for the React client
+- PostgreSQL — only when using the PostgreSQL provider
+- EF tools: `dotnet tool install -g dotnet-ef`
+- MAUI (optional): [Install .NET MAUI workload](https://learn.microsoft.com/dotnet/maui/get-started/installation)
+
+---
+
+## Quick start
+
+### 1. Backend
+
+From the repository root:
 
 ```bash
-cd TaskPlanner
 dotnet restore TaskPlanner.sln
 dotnet build TaskPlanner.sln
-```
-
-### MAUI-клієнт
-
-```bash
-dotnet workload restore
-dotnet build TaskPlanner.Maui.sln
-```
-
-Перед запуском клієнта підніміть API (наприклад профіль `http`, порт **5109**). У застосунку на екрані **Налаштування** вкажіть базову URL:
-
-| Де запускається застосунок | Базова URL |
-|----------------------------|------------|
-| Windows, iOS Simulator | `http://localhost:5109/` |
-| Android Emulator | `http://10.0.2.2:5109/` |
-| Телефон у тій самій мережі | `http://<IP-адреса комп’ютера>:5109/` |
-
-Адресу API можна змінити на екрані входу, ще до авторизації. Дедлайн завдання має дату й час. Нагадування: за годину до дедлайну, у момент дедлайну, на початку вікна навчання і вранці (план на день або вихідний). Час ранкового повідомлення задається в налаштуваннях. На Android і iOS вони ставляться після відкриття списку завдань; на Windows вибір лише зберігається.
-
-**Хто за що відповідає.** React — календар, ручні сесії, профіль і попередження про навантаження. MAUI — вхід, дисципліни, завдання, локальні нагадування про дедлайн і перегляд найближчих сесій на тиждень. Кнопок «сформувати розклад» у мобільному застосунку немає: це окремий крок після API планування.
-
-GitHub Actions збирає лише `TaskPlanner.sln`. MAUI на агенті Ubuntu не збирається, бо там немає workload’ів; збірку мобільного клієнта запускайте локально командою вище.
-
----
-
-## Запуск API
-
-### SQLite + Swagger
-
-```bash
 dotnet run --launch-profile http --project src/TaskPlanner.Api/TaskPlanner.Api.csproj
 ```
 
+- API: [http://localhost:5109](http://localhost:5109)
 - Swagger: [http://localhost:5109/swagger](http://localhost:5109/swagger)
-- У профілі `http` задано `JWT_SECRET` і `Database__Provider=Sqlite`.
+- The `http` launch profile sets `JWT_SECRET` and `Database__Provider=Sqlite` for local development.
 
-### Запуск React-клієнта
+### 2. React client
 
-Клієнтська частина застосунку реалізована на React, TypeScript і Vite та розташована в каталозі `client/`.
-
-Для запуску необхідно встановити Node.js і npm та запустити ASP.NET Core API за інструкцією з попереднього розділу.
-
-**1. Запуск frontend**
-
-Відкрийте другий термінал із кореня репозиторію та виконайте:
+In a second terminal:
 
 ```bash
 cd client
@@ -123,33 +112,48 @@ npm install
 npm run dev
 ```
 
-React-клієнт буде доступний за адресою `http://localhost:5173`.
+- App: [http://localhost:5173](http://localhost:5173)
+- Dev server proxies `/api` to `http://localhost:5109` (override with `VITE_API_URL` if needed).
 
-**2. Взаємодія з API**
-
-У режимі розробки Vite використовує proxy. Запити до `/api` автоматично перенаправляються на `http://localhost:5109`.
-
-За потреби адресу backend можна змінити через змінну середовища `VITE_API_URL` перед запуском Vite.
-
-**3. Production-збірка**
-
-Для перевірки збірки клієнта виконайте в каталозі `client/`:
+Production build check:
 
 ```bash
+cd client
 npm run build
+npm test
 ```
 
-### PostgreSQL
+### 3. MAUI companion (optional)
+
+```bash
+dotnet workload restore
+dotnet build src/TaskPlanner.Maui/TaskPlanner.Maui.csproj -f net8.0-android
+# or -f net8.0-ios / net8.0-windows10.0.19041.0 on supported hosts
+```
+
+Start the API first. Set the **API base URL** on the login or settings screen:
+
+| Where the app runs | Base URL |
+|--------------------|----------|
+| Windows / iOS Simulator | `http://localhost:5109/` |
+| Android emulator | `http://10.0.2.2:5109/` |
+| Physical phone (same LAN) | `http://<your-pc-ip>:5109/` |
+
+**Reminders (Android / iOS):** configurable in settings (hour before deadline, at deadline, study-window start, morning summary). The app syncs reminders with the server after login, when returning to the app, and when notification preferences change. Grant notification and (on Android 12+) exact-alarm permissions for reliable delivery. Windows stores preferences only; the OS does not show local notifications.
+
+---
+
+## PostgreSQL profile
 
 ```bash
 dotnet run --launch-profile http-postgres --project src/TaskPlanner.Api/TaskPlanner.Api.csproj
 ```
 
-Порт **5110**. Не змішуйте `Database__Provider=PostgreSQL` з профілем `http` (там зафіксовано SQLite).
+Listens on port **5110**. Do not mix `Database__Provider=PostgreSQL` with the `http` profile (that profile forces SQLite).
 
 ---
 
-## Міграції
+## Database migrations
 
 ```bash
 # SQLite
@@ -158,88 +162,122 @@ dotnet ef database update \
   --startup-project src/TaskPlanner.Api/TaskPlanner.Api.csproj \
   --context SqliteAppDbContext
 
-# PostgreSQL
+# PostgreSQL (example with dev secret)
 JWT_SECRET='LocalDev_JwtSecretKey_Min32CharactersLong!' dotnet ef database update \
   --project src/TaskPlanner.Infrastructure/TaskPlanner.Infrastructure.csproj \
   --startup-project src/TaskPlanner.Api/TaskPlanner.Api.csproj \
   --context PostgresAppDbContext
 ```
 
-При старті API виконується `MigrateAsync()` для активного провайдера.
+On startup, the API runs `MigrateAsync()` for the active provider.
 
 ---
 
-## Конфігурація
+## Configuration
 
-Файл: [`src/TaskPlanner.Api/appsettings.json`](src/TaskPlanner.Api/appsettings.json).
+Main file: [`src/TaskPlanner.Api/appsettings.json`](src/TaskPlanner.Api/appsettings.json).
 
-| Ключ | Опис |
-|------|------|
-| `Database:Provider` | `Sqlite` або `PostgreSQL` |
-| `ConnectionStrings:*` | рядки підключення |
-| `Jwt:*` | issuer, audience, термін токена |
-| `Cors:Origins` | дозволені origins (у т. ч. для локальних клієнтів) |
-| `Seed:AdminEmail` | email dev-адміна |
+| Key | Purpose |
+|-----|---------|
+| `Database:Provider` | `Sqlite` or `PostgreSQL` |
+| `ConnectionStrings:*` | Provider connection strings |
+| `Jwt:*` | Issuer, audience, token lifetime |
+| `Cors:Origins` | Allowed origins (Vite, local API, etc.) |
+| `Seed:AdminEmail` | Development admin seed |
 
-Секрет JWT не комітиться: змінна `JWT_SECRET` (або профілі в `launchSettings.json` для локальної розробки).
-
----
-
-## Swagger і JWT
-
-1. `POST /api/auth/login` з обліковими даними (наприклад dev seed у **Development**).
-2. Скопіювати `accessToken`.
-3. У Swagger: **Authorize** → вставити токен **без** префікса `Bearer`.
-4. Викликати `/api/tasks`, `/api/disciplines` тощо.
-
-Публічні: `POST /api/auth/register`, `POST /api/auth/login`.
+Do not commit production JWT secrets. Use environment variable `JWT_SECRET` (or launch profiles locally).
 
 ---
 
-## HTTP API (огляд)
+## Swagger and JWT
 
-| Група      | Base path          | Авторизація                            |
-| ---------- | ------------------ | -------------------------------------- |
-| Auth       | `/api/auth`        | register/login — публічно; `/me` — JWT |
-| Завдання   | `/api/tasks`       | JWT (власні завдання; admin — усі)     |
-| Дисципліни | `/api/disciplines` | JWT (`userId` з token, не з body)      |
-| Admin      | `/api/admin/users` | JWT + роль **Admin**                   |
-| Розклад    | `/api/schedule`    | JWT (лише дані поточного користувача)  |
+1. Call `POST /api/auth/login` (or register, then login).
+2. Copy `accessToken` from the response.
+3. In Swagger, click **Authorize** and paste the token **without** a `Bearer ` prefix.
+4. Call protected endpoints (`/api/tasks`, `/api/disciplines`, `/api/schedule/...`, etc.).
 
-Деталі query-параметрів — у Swagger.
-
-`POST /api/schedule/generate` ставить сесії зі статусом `Planned` у вільні години. Горизонт — `from`/`to` (UTC, до 92 днів) або `days` (1–92 від поточного часу). Повторний виклик замінює незаблоковані `Planned`-сесії в цьому горизонті, а не дублює їх. Відповідь містить створені сесії, роботу, яка не вмістилась, і перетини заморожених сесій.
-
-`POST /api/schedule/replan` перебудовує той самий горизонт: пропущені та майбутні незаблоковані `Planned`-сесії знімаються, завершені й `IsLocked` лишаються, залишок розкладається знову. Відповідь окремо показує, що залишилось, що створено і що знято. Правила — у [`docs/scheduling.md`](docs/scheduling.md).
+Public: `POST /api/auth/register`, `POST /api/auth/login`.
 
 ---
 
-## Облікові записи (Development)
+## HTTP API overview
 
-| Email | Пароль | Роль |
-|-------|--------|------|
-| `admin@taskplanner.local` | `Admin123!` | Admin (seed у Development) |
+| Area | Base path | Auth |
+|------|-----------|------|
+| Auth | `/api/auth` | Register/login public; `/me` requires JWT |
+| Tasks | `/api/tasks` | JWT (own tasks; admin sees all) |
+| Disciplines | `/api/disciplines` | JWT |
+| Availability | `/api/availability/*` | JWT |
+| Sessions | `/api/sessions` | JWT |
+| Planning | `/api/planning/*` | JWT |
+| Schedule | `/api/schedule` | JWT |
+| Admin | `/api/admin/users` | JWT + **Admin** role |
 
-Студентські акаунти створюйте через `POST /api/auth/register`.
+Query parameters and response shapes are documented in Swagger.
 
-Пароль admin у production **не** використовуйте; змініть seed або створюйте admin вручну.
+### Schedule endpoints
+
+- **`POST /api/schedule/generate`** — places new `Planned` sessions in free availability. Horizon: explicit `from` / `to` (UTC, max 92 days) or `days` (1–92 from now). Re-running **replaces unlocked `Planned` sessions** in that horizon (not locked, not completed). Returns created sessions, work that did not fit, and time conflicts involving existing sessions.
+
+- **`POST /api/schedule/replan`** — same horizon rules; removes **missed** and future **unlocked planned** sessions, keeps **completed** and **locked** sessions, then re-plans remaining work. Response lists stayed, created, removed, unscheduled, and conflicts.
+
+The React calendar builds the request horizon from the **visible week through the latest deadline of open tasks** (capped at 92 days), so tasks due in later weeks receive sessions without regenerating week by week.
+
+The planner treats **all existing sessions** in the request as blocking free time (including planned and missed), so newly generated sessions do not overlap them in time.
+
+Details: [`docs/scheduling.md`](docs/scheduling.md).
 
 ---
 
-## Типові проблеми
+## Development accounts
 
-| Симптом | Що перевірити |
-|---------|---------------|
-| 401 у Swagger | Спочатку login, потім Authorize з `accessToken` |
-| Запущено SQLite замість PG | Профіль `http-postgres` |
-| `JWT secret is not configured` | `JWT_SECRET` або launch-профіль |
-| Помилка міграції | `dotnet ef database update` або чистий файл SQLite |
-| PostgreSQL: помилка автентифікації | `pg_hba.conf`, пароль у рядку підключення |
-| MAUI: помилка workload | `dotnet workload restore` |
-| MAUI + Android + HTTP | URL `http://10.0.2.2:5109/` до хоста з API |
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@taskplanner.local` | `Admin123!` | Admin (seeded in Development only) |
+
+Create student accounts with `POST /api/auth/register`. Change or disable the admin seed in production.
 
 ---
 
-## Ліцензія
+## Continuous integration
 
-Проєкт з освітньою метою; умови використання за потреби уточнюйте у автора.
+GitHub Actions (`.github/workflows/dotnet.yml`) restores, builds, and tests **`TaskPlanner.sln`** on Ubuntu. It does **not** build MAUI (no mobile workloads on the agent). Build the mobile project locally.
+
+The React client is not run in CI by default; run `npm test` and `npm run build` locally or extend CI as needed.
+
+---
+
+## Troubleshooting
+
+| Symptom | What to check |
+|---------|----------------|
+| 401 in Swagger | Login first, then Authorize with `accessToken` |
+| SQLite DB used instead of PostgreSQL | Use `http-postgres` launch profile |
+| `JWT secret is not configured` | Set `JWT_SECRET` or use a launch profile |
+| EF migration errors | Run `dotnet ef database update` or remove stale SQLite file |
+| PostgreSQL auth failure | Credentials, `pg_hba.conf`, connection string |
+| `npm ci` fails | Run `npm install` (lockfile may list optional platform packages) |
+| MAUI workload errors | `dotnet workload restore` |
+| MAUI cannot reach API on Android emulator | Base URL `http://10.0.2.2:5109/` |
+| No mobile notifications | OS notification permission; Android exact-alarm setting |
+| Schedule still looks crowded in UI | Refresh; narrow sessions show time only—use tooltip for full title |
+
+---
+
+## Testing
+
+```bash
+# Backend
+dotnet test TaskPlanner.sln -c Release
+
+# React
+cd client && npm test
+```
+
+Scheduling behaviour has unit tests in `tests/TaskPlanner.Tests/Scheduling/` and API tests in `tests/TaskPlanner.Tests/Api/ScheduleTests.cs`.
+
+---
+
+## License
+
+Educational project; clarify terms of use with the authors if you redistribute or deploy publicly.
