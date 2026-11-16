@@ -26,7 +26,7 @@ public sealed record DisciplineDto(
 public sealed record CreateDisciplineRequest(
     string Name,
     string? Description,
-    string Color = "#3B82F6");
+    string Color = "#369AE0");
 
 public sealed record UpdateDisciplineRequest(
     string Name,

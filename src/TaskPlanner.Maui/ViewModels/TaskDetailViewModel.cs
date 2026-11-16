@@ -28,12 +28,22 @@ public partial class TaskDetailViewModel : ObservableObject
     {
         if (Guid.TryParse(value, out var id))
         {
-            _ = LoadAsync(id);
+            _ = ReloadAsync(id);
         }
     }
 
     [RelayCommand]
-    private async Task LoadAsync(Guid id)
+    private Task RefreshAsync()
+    {
+        if (Guid.TryParse(TaskId, out var id))
+        {
+            return ReloadAsync(id);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task ReloadAsync(Guid id)
     {
         ErrorMessage = null;
         IsBusy = true;

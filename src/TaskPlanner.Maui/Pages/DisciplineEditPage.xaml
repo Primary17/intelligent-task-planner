@@ -34,7 +34,7 @@
                             StrokeThickness="0"
                             VerticalOptions="Center"
                             WidthRequest="36" />
-                        <Entry Grid.Column="1" Placeholder="#3B82F6" Text="{Binding Color}" />
+                        <Entry Grid.Column="1" Placeholder="#369AE0" Text="{Binding Color}" />
                     </Grid>
                 </VerticalStackLayout>
             </Border>

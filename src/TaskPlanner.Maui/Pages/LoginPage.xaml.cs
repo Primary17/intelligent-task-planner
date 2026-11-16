@@ -22,9 +22,11 @@ public partial class LoginPage : ContentPage
 
     private static void Paint(Button button, bool selected)
     {
-        button.BackgroundColor = selected ? Color.FromArgb("#0F766E") : Colors.Transparent;
-        button.TextColor = selected ? Colors.White : Color.FromArgb("#134E4A");
-        button.BorderColor = Color.FromArgb("#0F766E");
+        var primary = (Color)(Application.Current?.Resources["Primary"] ?? Color.FromArgb("#2B8FD4"));
+        var dark = (Color)(Application.Current?.Resources["Dark"] ?? Color.FromArgb("#0B5198"));
+        button.BackgroundColor = selected ? primary : Colors.Transparent;
+        button.TextColor = selected ? Colors.White : dark;
+        button.BorderColor = primary;
         button.BorderWidth = selected ? 0 : 1.5;
     }
 

@@ -27,7 +27,15 @@ public sealed class ReminderSyncService
             {
                 tasks = await _api.GetTasksAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (ApiException)
+            {
+                return;
+            }
+            catch (HttpRequestException)
             {
                 return;
             }
@@ -44,7 +52,15 @@ public sealed class ReminderSyncService
                     .GetEffectiveAvailabilityAsync(today, today.AddDays(6), cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (ApiException)
+            {
+                // Reminders still work for fixed task deadlines.
+            }
+            catch (HttpRequestException)
             {
                 // Reminders still work for fixed task deadlines.
             }

@@ -16,7 +16,7 @@ public partial class DisciplineEditViewModel : ObservableObject
 
     [ObservableProperty] private string _description = "";
 
-    [ObservableProperty] private string _color = "#3B82F6";
+    [ObservableProperty] private string _color = "#369AE0";
 
     [ObservableProperty] private bool _isBusy;
 
@@ -43,7 +43,7 @@ public partial class DisciplineEditViewModel : ObservableObject
             ApplyTitle();
             Name = "";
             Description = "";
-            Color = "#3B82F6";
+            Color = "#369AE0";
             return;
         }
 
@@ -101,7 +101,7 @@ public partial class DisciplineEditViewModel : ObservableObject
                 var created = await _api.CreateDisciplineAsync(new CreateDisciplineRequest(
                     Name.Trim(),
                     string.IsNullOrWhiteSpace(Description) ? null : Description.Trim(),
-                    string.IsNullOrWhiteSpace(Color) ? "#3B82F6" : Color.Trim()));
+                    string.IsNullOrWhiteSpace(Color) ? "#369AE0" : Color.Trim()));
                 await Shell.Current.GoToAsync($"..");
             }
             else
@@ -111,7 +111,7 @@ public partial class DisciplineEditViewModel : ObservableObject
                     new UpdateDisciplineRequest(
                         Name.Trim(),
                         string.IsNullOrWhiteSpace(Description) ? null : Description.Trim(),
-                        string.IsNullOrWhiteSpace(Color) ? "#3B82F6" : Color.Trim()));
+                        string.IsNullOrWhiteSpace(Color) ? "#369AE0" : Color.Trim()));
                 await Shell.Current.GoToAsync($"..");
             }
         }
