@@ -36,6 +36,12 @@ export function dayNameOf(date: Date): DayName {
   return DAYS[(date.getDay() + 6) % 7].key;
 }
 
+export function minutesToClock(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${pad(h)}:${pad(m)}`;
+}
+
 export function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
   return h * 60 + m;

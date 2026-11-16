@@ -240,26 +240,51 @@ public sealed class SchedulePlannerTests
     }
 
     [Fact]
-    public void UnlockedPlannedSession_DoesNotBlockOrReduceRemainingWork()
+    public void ExistingPlannedSession_BlocksOverlappingPlacementForAnotherTask()
     {
-        var task = Task(deadline: WeekStart.AddDays(2), minutes: 60);
+        var occupied = Task(deadline: WeekStart.AddDays(2), minutes: 60);
+        var newcomer = Task(deadline: WeekStart.AddDays(2), minutes: 60, priority: TaskPriority.Critical);
         var planned = new OccupiedSession(
             Guid.NewGuid(),
-            task.Id,
+            occupied.Id,
+            WeekStart.AddHours(15),
             WeekStart.AddHours(17),
-            WeekStart.AddHours(18),
-            PlannedMinutes: 60,
+            PlannedMinutes: 120,
             ActualMinutes: null,
             SessionStatus.Planned,
             IsLocked: false);
 
-        var plan = Plan(new[] { task }, new[] { Window(DayOfWeek.Monday, 17, 18) }, existing: new[] { planned });
+        var plan = Plan(
+            new[] { newcomer, occupied },
+            new[] { Window(DayOfWeek.Monday, 15, 20) },
+            existing: new[] { planned });
+
+        Assert.Equal(2, plan.Sessions.Count);
+        Assert.All(
+            plan.Sessions,
+            s => Assert.False(s.StartAtUtc < planned.EndAtUtc && s.EndAtUtc > planned.StartAtUtc));
+        Assert.Contains(plan.Sessions, s => s.StudyTaskId == newcomer.Id && s.StartAtUtc >= planned.EndAtUtc);
+    }
+
+    [Fact]
+    public void MissedSession_BlocksTheSameTimeSlot()
+    {
+        var task = Task(deadline: WeekStart.AddDays(2), minutes: 60, priority: TaskPriority.Critical);
+        var missed = new OccupiedSession(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            WeekStart.AddHours(15),
+            WeekStart.AddHours(17),
+            PlannedMinutes: 120,
+            ActualMinutes: null,
+            SessionStatus.Missed,
+            IsLocked: false);
+
+        var plan = Plan(new[] { task }, new[] { Window(DayOfWeek.Monday, 15, 20) }, existing: new[] { missed });
 
         var session = Assert.Single(plan.Sessions);
-        Assert.Equal(planned.StartAtUtc, session.StartAtUtc);
+        Assert.Equal(WeekStart.AddHours(17), session.StartAtUtc);
         Assert.Equal(60, session.PlannedMinutes);
-        Assert.Empty(plan.Unscheduled);
-        Assert.Empty(plan.Conflicts);
     }
 
     [Fact]

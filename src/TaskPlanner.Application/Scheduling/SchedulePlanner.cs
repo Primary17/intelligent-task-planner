@@ -34,9 +34,9 @@ public sealed class SchedulePlanner
 
         var timeZone = horizon.TimeZone ?? TimeZoneInfo.Utc;
         var frozen = existingSessions.Where(IsFrozen).ToList();
-        var conflicts = FindConflicts(frozen);
+        var conflicts = FindConflicts(existingSessions);
         var free = BuildFreeIntervals(startUtc, endUtc, timeZone, windows, exceptions);
-        foreach (var session in frozen)
+        foreach (var session in existingSessions)
         {
             free = Subtract(free, AssumeUtc(session.StartAtUtc), AssumeUtc(session.EndAtUtc));
         }

@@ -115,11 +115,22 @@ tr.done .task-title { text-decoration: line-through; color: var(--muted); }
 .cal-hour { font-size: .72rem; color: var(--muted); text-align: right; padding-right: .4rem; transform: translateY(-.5em); }
 .cal-col { position: relative; border-left: 1px solid var(--border); background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px); }
 .cal-col.today { background-color: #fafaff; }
-.slot { position: absolute; left: 3px; right: 3px; background: #c7d2fe; border: 1px solid #a5b4fc; border-radius: 6px; font-size: .75rem; padding: .15rem .35rem; color: #312e81; overflow: hidden; }
-.slot-custom { background: #fde68a; border-color: #fcd34d; color: #78350f; }
+.slot { position: absolute; left: 4px; right: 4px; z-index: 1; background: #e0e7ff; border: 1px solid #c7d2fe; border-radius: 6px; pointer-events: none; }
+.slot-custom { background: #fef3c7; border-color: #fde68a; }
 .cal-note { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-size: .75rem; color: var(--muted); }
-.session { position: absolute; left: 12px; right: 4px; z-index: 2; border: 1px solid #cbd5e1; border-left: 4px solid #6366f1; border-radius: 6px; padding: .1rem .35rem; font: inherit; font-size: .75rem; line-height: 1.25; text-align: left; color: var(--text); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.session:hover { filter: brightness(.96); }
+.session {
+  position: absolute; left: 10px; right: 5px; z-index: 2; display: flex; flex-direction: column; justify-content: flex-start;
+  gap: 1px; border: 1px solid rgba(15, 23, 42, .12); border-left-width: 4px; border-radius: 5px; padding: 2px 5px;
+  font: inherit; text-align: left; color: #0f172a; cursor: pointer; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .07);
+}
+.session-time { font-size: .67rem; font-weight: 700; line-height: 1.2; flex-shrink: 0; white-space: nowrap; }
+.session-line { font-size: .68rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.session-name { font-size: .71rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+.session-tiny { justify-content: center; padding: 0 4px; }
+.session-tiny .session-time { font-size: .65rem; text-align: center; width: 100%; }
+.session-short { justify-content: center; }
+.session:hover { filter: brightness(.98); box-shadow: 0 1px 3px rgba(15, 23, 42, .12); }
 .session-completed { opacity: .65; text-decoration: line-through; }
 .session-missed { opacity: .55; border-style: dashed; }
 .session-title { margin: 0; }
