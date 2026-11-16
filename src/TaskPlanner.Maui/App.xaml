@@ -13,6 +13,7 @@
 
             <converters:PriorityLabelConverter x:Key="PriorityLabel" />
             <converters:StatusLabelConverter x:Key="StatusLabel" />
+            <converters:SessionStatusLabelConverter x:Key="SessionStatusLabel" />
             <converters:LocalDeadlineConverter x:Key="LocalDeadline" />
             <converters:LocFormatConverter x:Key="LocFormat" />
             <converters:RefreshConverter x:Key="Refresh" />

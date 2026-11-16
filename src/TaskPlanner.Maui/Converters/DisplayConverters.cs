@@ -51,6 +51,28 @@ public sealed class StatusLabelConverter : IValueConverter
         throw new NotSupportedException();
 }
 
+public sealed class SessionStatusLabelConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not SessionStatus status)
+        {
+            return string.Empty;
+        }
+
+        var key = status switch
+        {
+            SessionStatus.Completed => "Session_Completed",
+            SessionStatus.Missed => "Session_Missed",
+            _ => "Session_Planned"
+        };
+        return Localizer.Current[key];
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
 public sealed class LocalDeadlineConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

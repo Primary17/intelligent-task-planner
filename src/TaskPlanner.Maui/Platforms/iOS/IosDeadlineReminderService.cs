@@ -1,3 +1,4 @@
+using Foundation;
 using TaskPlanner.Maui.Api;
 using TaskPlanner.Maui.Services;
 using UserNotifications;
@@ -30,23 +31,50 @@ public sealed class IosDeadlineReminderService : IDeadlineReminderService
         var now = DateTimeOffset.UtcNow;
         foreach (var reminder in DeadlineReminderPlan.Build(tasks, days, now, _preferences))
         {
-            var seconds = (reminder.When - now).TotalSeconds;
-            if (seconds < 1)
+            if (reminder.When <= now)
             {
-                seconds = 1;
+                continue;
             }
 
             var content = new UNMutableNotificationContent
             {
                 Title = reminder.Title,
-                Body = reminder.Body
+                Body = reminder.Body,
+                Sound = UNNotificationSound.Default
             };
-            var trigger = UNTimeIntervalNotificationTrigger.CreateTrigger(seconds, false);
+
+            var trigger = CreateWallClockTrigger(reminder.When);
+            if (trigger is null)
+            {
+                continue;
+            }
+
             var request = UNNotificationRequest.FromIdentifier(
                 reminder.Id.ToString(),
                 content,
                 trigger);
             await center.AddNotificationRequestAsync(request);
         }
+    }
+
+    private static UNNotificationTrigger? CreateWallClockTrigger(DateTimeOffset when)
+    {
+        var local = when.ToLocalTime();
+        var components = new NSDateComponents
+        {
+            Year = local.Year,
+            Month = local.Month,
+            Day = local.Day,
+            Hour = local.Hour,
+            Minute = local.Minute,
+            Second = local.Second
+        };
+
+        if (components.Date is NSDate date && date.SecondsSinceReferenceDate <= NSDate.Now.SecondsSinceReferenceDate)
+        {
+            return null;
+        }
+
+        return UNCalendarNotificationTrigger.CreateTrigger(components, false);
     }
 }

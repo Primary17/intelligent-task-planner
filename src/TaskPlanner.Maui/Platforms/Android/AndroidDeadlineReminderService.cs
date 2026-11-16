@@ -56,10 +56,54 @@ public sealed class AndroidDeadlineReminderService : IDeadlineReminderService
                 continue;
             }
 
-            alarm.Set(AlarmType.RtcWakeup, reminder.When.ToUnixTimeMilliseconds(), pending);
+            var triggerAt = reminder.When.ToUnixTimeMilliseconds();
+            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (triggerAt <= now)
+            {
+                continue;
+            }
+
+            ScheduleAlarm(context, alarm, triggerAt, pending);
         }
 
         Preferences.Set(StoredIdsKey, string.Join(',', reminders.Select(r => r.Id)));
+    }
+
+    private static void ScheduleAlarm(Context context, AlarmManager alarm, long triggerAtMillis, PendingIntent operation)
+    {
+        var launch = context.PackageManager?.GetLaunchIntentForPackage(context.PackageName ?? string.Empty);
+        PendingIntent? show = null;
+        if (launch is not null)
+        {
+            show = PendingIntent.GetActivity(
+                context,
+                0,
+                launch,
+                PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+        }
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(21))
+        {
+            var info = new AlarmManager.AlarmClockInfo(triggerAtMillis, show);
+            alarm.SetAlarmClock(info, operation);
+            return;
+        }
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(23))
+        {
+            if (OperatingSystem.IsAndroidVersionAtLeast(31) && !alarm.CanScheduleExactAlarms())
+            {
+                alarm.SetAndAllowWhileIdle(AlarmType.RtcWakeup, triggerAtMillis, operation);
+            }
+            else
+            {
+                alarm.SetExactAndAllowWhileIdle(AlarmType.RtcWakeup, triggerAtMillis, operation);
+            }
+
+            return;
+        }
+
+        alarm.SetExact(AlarmType.RtcWakeup, triggerAtMillis, operation);
     }
 
     private static void CancelStored(Context context, AlarmManager alarm)

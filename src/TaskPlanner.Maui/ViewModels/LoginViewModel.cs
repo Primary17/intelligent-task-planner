@@ -11,6 +11,7 @@ public partial class LoginViewModel : ObservableObject
 {
     private readonly TaskPlannerApiClient _api;
     private readonly IAuthTokenStore _tokens;
+    private readonly ReminderSyncService _reminderSync;
     private readonly IServiceProvider _services;
 
     [ObservableProperty] private string _email = "";
@@ -23,10 +24,15 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty] private string? _errorMessage;
 
-    public LoginViewModel(TaskPlannerApiClient api, IAuthTokenStore tokens, IServiceProvider services)
+    public LoginViewModel(
+        TaskPlannerApiClient api,
+        IAuthTokenStore tokens,
+        ReminderSyncService reminderSync,
+        IServiceProvider services)
     {
         _api = api;
         _tokens = tokens;
+        _reminderSync = reminderSync;
         _services = services;
     }
 
@@ -129,5 +135,6 @@ public partial class LoginViewModel : ObservableObject
         }
 
         Application.Current.MainPage = _services.GetRequiredService<MainShell>();
+        _ = _reminderSync.SyncIfPossibleAsync();
     }
 }

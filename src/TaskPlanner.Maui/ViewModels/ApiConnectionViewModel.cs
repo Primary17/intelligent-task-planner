@@ -13,6 +13,12 @@ public partial class ApiConnectionViewModel : ObservableObject
 
     [ObservableProperty] private string? _message;
 
+#if DEBUG
+    public bool ShowDevShortcuts => true;
+#else
+    public bool ShowDevShortcuts => false;
+#endif
+
     public ApiConnectionViewModel(AppSettings settings)
     {
         _settings = settings;

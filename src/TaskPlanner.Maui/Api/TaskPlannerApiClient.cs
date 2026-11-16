@@ -122,6 +122,18 @@ public sealed class TaskPlannerApiClient
         return list ?? [];
     }
 
+    public async Task<StudySessionDto?> GetSessionAsync(Guid id, CancellationToken ct = default)
+    {
+        var response = await _http.GetAsync($"api/sessions/{id}", ct).ConfigureAwait(false);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        await EnsureSuccessOrProblemAsync(response, ct).ConfigureAwait(false);
+        return await response.Content.ReadFromJsonAsync<StudySessionDto>(JsonOptions, ct).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<StudyTaskDto>> GetTasksAsync(CancellationToken ct = default)
     {
         var response = await _http.GetAsync("api/tasks", ct).ConfigureAwait(false);

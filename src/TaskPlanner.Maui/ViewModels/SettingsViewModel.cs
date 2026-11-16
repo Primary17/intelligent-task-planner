@@ -10,6 +10,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly IAuthTokenStore _tokens;
     private readonly NotificationPreferences _notifications;
+    private readonly ReminderSyncService _reminderSync;
     private readonly IServiceProvider _services;
     private bool _loading = true;
 
@@ -30,10 +31,12 @@ public partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(
         IAuthTokenStore tokens,
         NotificationPreferences notifications,
+        ReminderSyncService reminderSync,
         IServiceProvider services)
     {
         _tokens = tokens;
         _notifications = notifications;
+        _reminderSync = reminderSync;
         _services = services;
         RemindHourBefore = _notifications.RemindHourBefore;
         RemindAtDeadline = _notifications.RemindAtDeadline;
@@ -70,6 +73,7 @@ public partial class SettingsViewModel : ObservableObject
         if (!_loading)
         {
             _notifications.RemindHourBefore = value;
+            RequestReminderSync();
         }
     }
 
@@ -78,6 +82,7 @@ public partial class SettingsViewModel : ObservableObject
         if (!_loading)
         {
             _notifications.RemindAtDeadline = value;
+            RequestReminderSync();
         }
     }
 
@@ -86,6 +91,7 @@ public partial class SettingsViewModel : ObservableObject
         if (!_loading)
         {
             _notifications.RemindStudyStart = value;
+            RequestReminderSync();
         }
     }
 
@@ -94,6 +100,7 @@ public partial class SettingsViewModel : ObservableObject
         if (!_loading)
         {
             _notifications.MorningSummary = value;
+            RequestReminderSync();
         }
     }
 
@@ -102,8 +109,11 @@ public partial class SettingsViewModel : ObservableObject
         if (!_loading)
         {
             _notifications.MorningTime = value;
+            RequestReminderSync();
         }
     }
+
+    private void RequestReminderSync() => _ = _reminderSync.SyncIfPossibleAsync();
 
     [RelayCommand]
     private async Task LogoutAsync()

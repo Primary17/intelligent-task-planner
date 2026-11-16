@@ -10,13 +10,11 @@
     x:DataType="vm:TasksViewModel">
 
     <Grid Padding="16,12" RowDefinitions="Auto,Auto,*" RowSpacing="8">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <Label
-                Style="{StaticResource Caption}"
-                Text="{loc:Loc Tasks_Hint}"
-                VerticalOptions="Center" />
-            <Button Grid.Column="1" Command="{Binding CreateNewCommand}" Text="{loc:Loc Common_Add}" />
-        </Grid>
+        <Button
+            Grid.Row="0"
+            Command="{Binding CreateNewCommand}"
+            HorizontalOptions="End"
+            Text="{loc:Loc Common_Add}" />
 
         <VerticalStackLayout Grid.Row="1" Spacing="4">
             <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />

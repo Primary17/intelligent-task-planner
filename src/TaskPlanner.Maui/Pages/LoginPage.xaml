@@ -32,8 +32,6 @@
                 FontSize="32"
                 SemanticProperties.HeadingLevel="Level1"
                 Text="Task Planner" />
-            <Label Style="{StaticResource Caption}" Text="{loc:Loc Login_Subtitle}" />
-
             <controls:ApiConnectionCard Margin="0,16,0,0" />
 
             <Border Margin="0,12,0,0" Style="{StaticResource Card}">
@@ -44,8 +42,7 @@
                     <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Login_Password}" />
                     <Entry IsPassword="True" Placeholder="{loc:Loc Login_PasswordPlaceholder}" Text="{Binding Password}" />
 
-                    <Label Margin="0,16,0,0" Style="{StaticResource Caption}" Text="{loc:Loc Login_RegisterHint}" />
-                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Login_Name}" />
+                    <Label Margin="0,16,0,0" Style="{StaticResource FieldLabel}" Text="{loc:Loc Login_Name}" />
                     <Entry Placeholder="{loc:Loc Login_NamePlaceholder}" Text="{Binding DisplayName}" />
 
                     <ActivityIndicator Margin="0,12,0,0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />

@@ -1,12 +1,13 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TaskPlanner.Maui;
 using TaskPlanner.Maui.Api;
 using TaskPlanner.Maui.Localization;
 
 namespace TaskPlanner.Maui.ViewModels;
 
-public sealed record UpcomingSessionRow(string When, string Title, string DisciplineName, string Status);
+public sealed record UpcomingSessionRow(Guid Id, string When, string Title, string DisciplineName, string Status);
 
 public partial class UpcomingViewModel : ObservableObject
 {
@@ -80,7 +81,18 @@ public partial class UpcomingViewModel : ObservableObject
             SessionStatus.Missed => "Session_Missed",
             _ => "Session_Planned"
         };
-        return new UpcomingSessionRow(when, session.TaskTitle, session.DisciplineName, Localizer.Current[statusKey]);
+        return new UpcomingSessionRow(session.Id, when, session.TaskTitle, session.DisciplineName, Localizer.Current[statusKey]);
+    }
+
+    [RelayCommand]
+    private async Task OpenDetailAsync(UpcomingSessionRow? row)
+    {
+        if (row is null)
+        {
+            return;
+        }
+
+        await Shell.Current.GoToAsync($"{MainShell.RouteSessionDetail}?SessionId={row.Id}");
     }
 
     private static DateTime AsLocal(DateTime value) => value.Kind switch

@@ -21,6 +21,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<AppSettings>();
         builder.Services.AddSingleton<NotificationPreferences>();
+        builder.Services.AddSingleton<ReminderSyncService>();
         builder.Services.AddSingleton<IAuthTokenStore, AuthTokenStore>();
 #if ANDROID
         builder.Services.AddSingleton<IDeadlineReminderService, AndroidDeadlineReminderService>();
@@ -47,6 +48,7 @@ public static class MauiProgram
         builder.Services.AddTransient<DisciplineEditViewModel>();
         builder.Services.AddTransient<TasksViewModel>();
         builder.Services.AddTransient<UpcomingViewModel>();
+        builder.Services.AddTransient<SessionDetailViewModel>();
         builder.Services.AddTransient<TaskDetailViewModel>();
         builder.Services.AddTransient<TaskEditViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
@@ -58,6 +60,7 @@ public static class MauiProgram
         builder.Services.AddTransient<DisciplineEditPage>();
         builder.Services.AddTransient<TasksPage>();
         builder.Services.AddTransient<UpcomingPage>();
+        builder.Services.AddTransient<SessionDetailPage>();
         builder.Services.AddTransient<TaskDetailPage>();
         builder.Services.AddTransient<TaskEditPage>();
         builder.Services.AddTransient<SettingsPage>();

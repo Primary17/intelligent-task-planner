@@ -12,7 +12,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="8">
             <Label FontAttributes="Bold" FontSize="22" Text="{loc:Loc Settings_Language}" />
-            <Label Style="{StaticResource Caption}" Text="{loc:Loc Settings_LanguageHint}" />
 
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Spacing="8">
@@ -28,7 +27,6 @@
             </Border>
 
             <Label Margin="0,16,0,0" FontAttributes="Bold" FontSize="22" Text="{loc:Loc Settings_Notifications}" />
-            <Label Style="{StaticResource Caption}" Text="{loc:Loc Settings_NotifyHint}" />
 
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Spacing="12">

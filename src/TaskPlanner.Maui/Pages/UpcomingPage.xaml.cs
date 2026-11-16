@@ -18,4 +18,15 @@ public partial class UpcomingPage : ContentPage
             await viewModel.LoadCommand.ExecuteAsync(null);
         }
     }
+
+    private async void OnSessionSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is not UpcomingSessionRow row || BindingContext is not UpcomingViewModel vm)
+        {
+            return;
+        }
+
+        SessionCollection.SelectedItem = null;
+        await vm.OpenDetailCommand.ExecuteAsync(row);
+    }
 }

@@ -18,7 +18,7 @@ public sealed class DeadlineAlarmReceiver : BroadcastReceiver
         }
 
         var id = intent.GetIntExtra("id", 0);
-        var title = intent.GetStringExtra("title") ?? "Дедлайн";
+        var title = intent.GetStringExtra("title") ?? "Task Planner";
         var body = intent.GetStringExtra("body") ?? string.Empty;
         var manager = (NotificationManager?)context.GetSystemService(Context.NotificationService);
         if (manager is null)
@@ -28,7 +28,14 @@ public sealed class DeadlineAlarmReceiver : BroadcastReceiver
 
         if (OperatingSystem.IsAndroidVersionAtLeast(26))
         {
-            var channel = new NotificationChannel(ChannelId, Localizer.Current["Reminder_Channel"], NotificationImportance.Default);
+            var channel = new NotificationChannel(
+                ChannelId,
+                Localizer.Current["Reminder_Channel"],
+                NotificationImportance.High)
+            {
+                Description = Localizer.Current["Reminder_Channel"]
+            };
+            channel.EnableVibration(true);
             manager.CreateNotificationChannel(channel);
         }
 
@@ -37,6 +44,10 @@ public sealed class DeadlineAlarmReceiver : BroadcastReceiver
             .SetContentText(body)!
             .SetSmallIcon(context.ApplicationInfo!.Icon)!
             .SetAutoCancel(true)!
+            .SetCategory(NotificationCompat.CategoryAlarm)!
+            .SetPriority(NotificationCompat.PriorityHigh)!
+            .SetVisibility(NotificationCompat.VisibilityPublic)!
+            .SetDefaults(NotificationCompat.DefaultSound | NotificationCompat.DefaultVibrate)!
             .Build();
         manager.Notify(id, notification);
     }

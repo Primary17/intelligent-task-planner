@@ -11,7 +11,7 @@ namespace TaskPlanner.Maui.ViewModels;
 public partial class TasksViewModel : ObservableObject
 {
     private readonly TaskPlannerApiClient _api;
-    private readonly IDeadlineReminderService _reminders;
+    private readonly ReminderSyncService _reminderSync;
 
     [ObservableProperty] private bool _isBusy;
 
@@ -21,10 +21,10 @@ public partial class TasksViewModel : ObservableObject
 
     public ObservableCollection<StudyTaskDto> Items { get; } = new();
 
-    public TasksViewModel(TaskPlannerApiClient api, IDeadlineReminderService reminders)
+    public TasksViewModel(TaskPlannerApiClient api, ReminderSyncService reminderSync)
     {
         _api = api;
-        _reminders = reminders;
+        _reminderSync = reminderSync;
     }
 
     [RelayCommand]
@@ -48,25 +48,7 @@ public partial class TasksViewModel : ObservableObject
                 Items.Add(t);
             }
 
-            try
-            {
-                IReadOnlyList<EffectiveDayDto> days = [];
-                try
-                {
-                    var today = DateOnly.FromDateTime(DateTime.Now);
-                    days = await _api.GetEffectiveAvailabilityAsync(today, today.AddDays(6));
-                }
-                catch (Exception)
-                {
-                    // Deadline reminders still make sense without a weekly schedule.
-                }
-
-                await _reminders.SyncAsync(Items.ToList(), days);
-            }
-            catch (Exception)
-            {
-                // A reminder failure must not hide the task list.
-            }
+            _ = _reminderSync.SyncIfPossibleAsync();
         }
         catch (ApiException ex)
         {
