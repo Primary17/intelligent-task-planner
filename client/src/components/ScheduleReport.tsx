@@ -16,7 +16,12 @@ export function ScheduleReport({ summary, onClose }: { summary: ScheduleSummary;
         <button type="button" className="btn btn-ghost" onClick={onClose}>Закрити</button>
       </div>
 
-      {fits && <p>Усі завдання вмістилися в розклад.</p>}
+      {fits && (
+        <p>
+          Усі завдання вмістилися в розклад.
+          Конфліктів серед перевірених сесій поточного тижня не виявлено.
+        </p>
+      )}
 
       {summary.unscheduled.length > 0 && (
         <>
@@ -37,7 +42,11 @@ export function ScheduleReport({ summary, onClose }: { summary: ScheduleSummary;
 
       {summary.conflicts.length > 0 && (
         <>
-          <p><strong>Конфлікти:</strong> закріплені або завершені сесії перетинаються. Їх можна змінити, клікнувши на сесію в календарі.</p>
+          <p>
+            <strong>Конфлікти поточного тижня:</strong> виявлено перетини
+            закріплених або завершених сесій.
+            Переглянути їх можна в календарі.
+          </p>
           <ul className="report-list">
             {summary.conflicts.map((item, i) => (
               <li key={i}>

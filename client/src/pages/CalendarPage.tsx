@@ -38,6 +38,11 @@ export function CalendarPage() {
   const [scheduling, setScheduling] = useState<'generate' | 'replan' | null>(null);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [report, setReport] = useState<ScheduleSummary | null>(null);
+  const changeWeek = (newWeekStart: Date) => {
+    setWeekStart(newWeekStart);
+    setReport(null);
+    setScheduleError(null);
+  };
 
   const colorOf = (id: string) => disciplines.data?.find((d) => d.id === id)?.color ?? '#94a3b8';
 
@@ -84,6 +89,17 @@ export function CalendarPage() {
 
   const runSchedule = async (kind: 'generate' | 'replan') => {
     if (!horizon) return;
+
+    if (kind === 'generate') {
+      const confirmed = window.confirm(
+        'Повторна генерація замінить незакріплені заплановані сесії '
+        + 'в межах вибраного тижня. '
+        + 'Закріплені та завершені сесії залишаться без змін. '
+        + 'Продовжити?'
+      );
+
+      if (!confirmed) return;
+    }
     const names = {
       taskTitle: (id: string) => tasks.data?.find((t) => t.id === id)?.title,
       sessionTitle: (id: string) => sessions.data?.find((s) => s.id === id)?.taskTitle,
@@ -138,9 +154,9 @@ export function CalendarPage() {
             {scheduling === 'replan' ? 'Перепланування…' : 'Перепланувати'}
           </button>
           <button className="btn btn-ghost" onClick={() => setAdding(true)}>+ Сесія</button>
-          <button className="btn btn-ghost" onClick={() => setWeekStart(addDays(weekStart, -7))}>←</button>
-          <button className="btn btn-ghost" onClick={() => setWeekStart(startOfWeek(new Date()))}>Сьогодні</button>
-          <button className="btn btn-ghost" onClick={() => setWeekStart(addDays(weekStart, 7))}>→</button>
+          <button className="btn btn-ghost" onClick={() => changeWeek(addDays(weekStart, -7))}>←</button>
+          <button className="btn btn-ghost" onClick={() => changeWeek(startOfWeek(new Date()))}>Сьогодні</button>
+          <button className="btn btn-ghost" onClick={() => changeWeek(addDays(weekStart, 7))}>→</button>
         </div>
       </div>
       <p className="muted">
