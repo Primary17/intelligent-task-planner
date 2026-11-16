@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.SessionDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Shell.NavBarIsVisible="False"
+    Title="{loc:Loc Nav_Upcoming}"
+    x:DataType="vm:SessionDetailViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+            <controls:PageBackBar />
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label FontAttributes="Bold" FontSize="22" Text="{Binding Item.TaskTitle}" />
+                    <Label Style="{StaticResource Caption}" Text="{Binding Item.DisciplineName}" />
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Session_Start">
+                                <Binding Path="Item.StartAtUtc" Converter="{StaticResource LocalDeadline}" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Session_End">
+                                <Binding Path="Item.EndAtUtc" Converter="{StaticResource LocalDeadline}" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Session_Status">
+                                <Binding Path="Item.Status" Converter="{StaticResource SessionStatusLabel}" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Session_PlannedMinutes">
+                                <Binding Path="Item.PlannedMinutes" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Session_ActualMinutes">
+                                <Binding Path="Item.ActualMinutes" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label IsVisible="{Binding Item.IsLocked}" Text="{loc:Loc Session_Locked}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -57,7 +57,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// У Development HTTP має лишатися доступним з телефону в LAN.
+// Редирект на HTTPS вів би на сертифікат localhost, який пристрій не прийме.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors(AuthConfiguration.CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();

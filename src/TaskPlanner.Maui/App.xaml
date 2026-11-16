@@ -1,0 +1,22 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:TaskPlanner.Maui.Converters"
+             xmlns:local="clr-namespace:TaskPlanner.Maui"
+             x:Class="TaskPlanner.Maui.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:PriorityLabelConverter x:Key="PriorityLabel" />
+            <converters:StatusLabelConverter x:Key="StatusLabel" />
+            <converters:SessionStatusLabelConverter x:Key="SessionStatusLabel" />
+            <converters:LocalDeadlineConverter x:Key="LocalDeadline" />
+            <converters:LocFormatConverter x:Key="LocFormat" />
+            <converters:RefreshConverter x:Key="Refresh" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

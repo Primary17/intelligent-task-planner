@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.DisciplineDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Shell.NavBarIsVisible="False"
+    Title="{loc:Loc Nav_Disciplines}"
+    x:DataType="vm:DisciplineDetailViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+            <controls:PageBackBar />
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border
+                            BackgroundColor="{Binding Item.Color}"
+                            HeightRequest="48"
+                            StrokeShape="RoundRectangle 12"
+                            StrokeThickness="0"
+                            WidthRequest="48" />
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label FontAttributes="Bold" FontSize="22" Text="{Binding Item.Name}" />
+                            <Label Style="{StaticResource Caption}">
+                                <Label.Text>
+                                    <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Disciplines_Count">
+                                        <Binding Path="Item.TaskCount" />
+                                        <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Text="{Binding Item.Description}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Command="{Binding EditCommand}" Text="{loc:Loc Common_Edit}" />
+            <Button Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" Text="{loc:Loc Common_Delete}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

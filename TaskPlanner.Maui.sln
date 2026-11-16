@@ -1,0 +1,17 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskPlanner.Maui", "src\TaskPlanner.Maui\TaskPlanner.Maui.csproj", "{BB6415E2-87CD-43D7-9677-2357BED94656}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB6415E2-87CD-43D7-9677-2357BED94656}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB6415E2-87CD-43D7-9677-2357BED94656}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB6415E2-87CD-43D7-9677-2357BED94656}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB6415E2-87CD-43D7-9677-2357BED94656}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

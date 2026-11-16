@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="{loc:Loc Nav_Settings}"
+    x:DataType="vm:SettingsViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="8">
+            <Label FontAttributes="Bold" FontSize="22" Text="{loc:Loc Settings_Language}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="8">
+                    <RadioButton
+                        Content="Українська"
+                        GroupName="language"
+                        IsChecked="{Binding IsUkrainian}" />
+                    <RadioButton
+                        Content="English"
+                        GroupName="language"
+                        IsChecked="{Binding IsEnglish}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Margin="0,16,0,0" FontAttributes="Bold" FontSize="22" Text="{loc:Loc Settings_Notifications}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label VerticalOptions="Center" Text="{loc:Loc Settings_NotifyHour}" />
+                        <Switch Grid.Column="1" IsToggled="{Binding RemindHourBefore}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label VerticalOptions="Center" Text="{loc:Loc Settings_NotifyAt}" />
+                        <Switch Grid.Column="1" IsToggled="{Binding RemindAtDeadline}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label VerticalOptions="Center" Text="{loc:Loc Settings_NotifyStudyStart}" />
+                        <Switch Grid.Column="1" IsToggled="{Binding RemindStudyStart}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label VerticalOptions="Center" Text="{loc:Loc Settings_NotifyMorning}" />
+                        <Switch Grid.Column="1" IsToggled="{Binding MorningSummary}" />
+                    </Grid>
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Settings_MorningTime}" />
+                    <TimePicker IsEnabled="{Binding MorningSummary}" Time="{Binding MorningTime}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <controls:ApiConnectionCard Margin="0,16,0,0" />
+
+            <Button Margin="0,20,0,0" Command="{Binding LogoutCommand}" Style="{StaticResource DangerButton}" Text="{loc:Loc Settings_Logout}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

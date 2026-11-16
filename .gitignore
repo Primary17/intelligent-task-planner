@@ -8,4 +8,4 @@ src/TaskPlanner.Api/Data/
 .idea/
 .vs/
 *.swp
-/labs
+labs/

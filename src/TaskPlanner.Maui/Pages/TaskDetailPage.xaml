@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.TaskDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Shell.NavBarIsVisible="False"
+    Title="{loc:Loc Nav_Tasks}"
+    x:DataType="vm:TaskDetailViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+            <controls:PageBackBar />
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label FontAttributes="Bold" FontSize="22" Text="{Binding Item.Title}" />
+                    <Label Style="{StaticResource Caption}" Text="{Binding Item.DisciplineName}" />
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Deadline">
+                                <Binding Path="Item.DeadlineUtc" Converter="{StaticResource LocalDeadline}" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Status">
+                                <Binding Path="Item.Status" Converter="{StaticResource StatusLabel}" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Priority">
+                                <Binding Path="Item.Priority" Converter="{StaticResource PriorityLabel}" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Complexity">
+                                <Binding Path="Item.Complexity" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Estimate">
+                                <Binding Path="Item.EstimatedMinutes" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    <Label>
+                        <Label.Text>
+                            <MultiBinding Converter="{StaticResource LocFormat}" ConverterParameter="Tasks_Actual">
+                                <Binding Path="Item.ActualMinutes" />
+                                <Binding Path="Language" Source="{x:Static loc:Localizer.Current}" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Command="{Binding EditCommand}" Text="{loc:Loc Common_Edit}" />
+            <Button Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" Text="{loc:Loc Common_Delete}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

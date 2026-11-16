@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="200mm"
+   height="200mm"
+   viewBox="0 0 200 200"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="task-planner-icon-fg.svg"
+   inkscape:export-filename="task-planner-icon-fg.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="200"
+       height="200"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-0.84503109,1.6160122)">
+    <text
+       xml:space="preserve"
+       style="font-weight:600;font-size:153.566px;line-height:1;font-family:Comfortaa;-inkscape-font-specification:'Comfortaa Semi-Bold';writing-mode:lr-tb;direction:ltr;fill:#ffffff;stroke-width:1.06106"
+       x="26.460447"
+       y="154.41173"
+       id="text1"
+       transform="scale(1.0123342,0.98781607)"><tspan
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:153.566px;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans Bold';fill:#ffffff;stroke-width:1.06106"
+         x="26.460447"
+         y="154.41173">T</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:153.566px;line-height:1;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print';writing-mode:lr-tb;direction:ltr;fill:#ffffff;stroke-width:1.06106"
+       x="86.512123"
+       y="154.4124"
+       id="text2"
+       transform="scale(1.0123342,0.98781607)"><tspan
+         id="tspan2"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans Bold';fill:#ffffff;stroke-width:1.06106"
+         x="86.512123"
+         y="154.4124">P</tspan></text>
+  </g>
+</svg>

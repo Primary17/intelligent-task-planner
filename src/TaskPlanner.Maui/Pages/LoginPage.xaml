@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.LoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Title="Task Planner"
+    x:DataType="vm:LoginViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,32" Spacing="8" VerticalOptions="Center">
+            <HorizontalStackLayout Spacing="8">
+                <Button
+                    x:Name="UkrainianButton"
+                    Clicked="OnLanguage"
+                    CommandParameter="uk"
+                    Style="{StaticResource SecondaryButton}"
+                    Text="Українська" />
+                <Button
+                    x:Name="EnglishButton"
+                    Clicked="OnLanguage"
+                    CommandParameter="en"
+                    Style="{StaticResource SecondaryButton}"
+                    Text="English" />
+            </HorizontalStackLayout>
+
+            <Label
+                Margin="0,12,0,0"
+                FontAttributes="Bold"
+                FontSize="32"
+                SemanticProperties.HeadingLevel="Level1"
+                Text="Task Planner" />
+            <controls:ApiConnectionCard Margin="0,16,0,0" />
+
+            <Border Margin="0,12,0,0" Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Style="{StaticResource FieldLabel}" Text="Email" />
+                    <Entry Keyboard="Email" Placeholder="you@university.edu" Text="{Binding Email}" />
+
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Login_Password}" />
+                    <Entry IsPassword="True" Placeholder="{loc:Loc Login_PasswordPlaceholder}" Text="{Binding Password}" />
+
+                    <Label Margin="0,16,0,0" Style="{StaticResource FieldLabel}" Text="{loc:Loc Login_Name}" />
+                    <Entry Placeholder="{loc:Loc Login_NamePlaceholder}" Text="{Binding DisplayName}" />
+
+                    <ActivityIndicator Margin="0,12,0,0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                    <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+                    <Button Margin="0,12,0,0" Command="{Binding LoginCommand}" Text="{loc:Loc Login_SignIn}" />
+                    <Button Command="{Binding RegisterCommand}" Style="{StaticResource SecondaryButton}" Text="{loc:Loc Login_CreateAccount}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

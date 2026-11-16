@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TaskPlanner.Maui.Pages.DisciplineEditPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:TaskPlanner.Maui.Controls"
+    xmlns:loc="clr-namespace:TaskPlanner.Maui.Localization"
+    xmlns:vm="clr-namespace:TaskPlanner.Maui.ViewModels"
+    Shell.NavBarIsVisible="False"
+    Title="{loc:Loc Nav_Disciplines}"
+    x:DataType="vm:DisciplineEditViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="8">
+            <controls:PageBackBar />
+            <Label FontAttributes="Bold" FontSize="22" Text="{Binding Title}" />
+            <ActivityIndicator HorizontalOptions="Start" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Style="{StaticResource ErrorText}" Text="{Binding ErrorMessage}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Common_Name}" />
+                    <Entry Placeholder="{loc:Loc Disciplines_Example}" Text="{Binding Name}" />
+
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Disciplines_Description}" />
+                    <Editor AutoSize="TextChanges" Placeholder="{loc:Loc Disciplines_Optional}" Text="{Binding Description}" />
+
+                    <Label Style="{StaticResource FieldLabel}" Text="{loc:Loc Disciplines_Color}" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border
+                            BackgroundColor="{Binding Color}"
+                            HeightRequest="36"
+                            StrokeShape="RoundRectangle 8"
+                            StrokeThickness="0"
+                            VerticalOptions="Center"
+                            WidthRequest="36" />
+                        <Entry Grid.Column="1" Placeholder="#369AE0" Text="{Binding Color}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Margin="0,8,0,0" Command="{Binding SaveCommand}" Text="{loc:Loc Common_Save}" />
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Text="{loc:Loc Common_Cancel}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
