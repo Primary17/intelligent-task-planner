@@ -2,7 +2,7 @@ import { request } from './http';
 import type {
   AuthResponse, AvailabilityException, AvailabilityExceptionInput, AvailabilityWindow,
   AvailabilityWindowInput, CreateSessionInput, CreateTaskInput, Discipline, DisciplineInput, EffectiveDay,
-  CapacityReport, ChangePasswordInput, StudySession, StudyTask, TaskFilters, UpdateProfileInput,
+  CapacityReport, ChangePasswordInput, GenerateScheduleResponse, ReplanScheduleResponse, ScheduleRequest, StudySession, StudyTask, TaskFilters, UpdateProfileInput,
   UpdateSessionInput, UpdateTaskInput, UserProfile,
 } from './types';
 
@@ -71,4 +71,9 @@ export const sessionsApi = {
 export const planningApi = {
   capacity: (utcOffsetMinutes: number) =>
     request<CapacityReport>(`/planning/capacity${buildQuery({ utcOffsetMinutes: String(utcOffsetMinutes) })}`),
+};
+
+export const scheduleApi = {
+  generate: (input: ScheduleRequest) => post<GenerateScheduleResponse>('/schedule/generate', input),
+  replan: (input: ScheduleRequest) => post<ReplanScheduleResponse>('/schedule/replan', input),
 };

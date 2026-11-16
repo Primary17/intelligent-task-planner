@@ -174,3 +174,50 @@ export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
 }
+
+export interface ScheduleRequest {
+  from: string;
+  to: string;
+  timeZoneId?: string;
+}
+
+export interface GeneratedSession {
+  id: string;
+  studyTaskId: string;
+  startAtUtc: string;
+  endAtUtc: string;
+  plannedMinutes: number;
+  status: SessionStatus;
+  isLocked: boolean;
+}
+
+export interface UnscheduledWork {
+  studyTaskId: string;
+  remainingMinutes: number;
+  scheduledMinutes: number;
+}
+
+export interface ScheduleConflict {
+  firstSessionId: string;
+  secondSessionId: string;
+  overlapStartUtc: string;
+  overlapEndUtc: string;
+}
+
+export interface GenerateScheduleResponse {
+  from: string;
+  to: string;
+  sessions: GeneratedSession[];
+  unscheduled: UnscheduledWork[];
+  conflicts: ScheduleConflict[];
+}
+
+export interface ReplanScheduleResponse {
+  from: string;
+  to: string;
+  stayed: GeneratedSession[];
+  created: GeneratedSession[];
+  removed: GeneratedSession[];
+  unscheduled: UnscheduledWork[];
+  conflicts: ScheduleConflict[];
+}
