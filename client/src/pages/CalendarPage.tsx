@@ -1,16 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { availabilityApi, disciplinesApi, planningApi, scheduleApi, sessionsApi, tasksApi } from '../api/endpoints';
 import { errorMessage } from '../api/http';
 import type { StudySession } from '../api/types';
 import {
-  DAYS, addDays, formatDayMonth, formatMinutes, localUtcOffsetMinutes, parseUtc, startOfWeek, timeToMinutes, toDateKey,
+  DAYS, addDays, formatDayMonth, formatMinutes, localUtcOffsetMinutes, minutesToClock, parseUtc, startOfWeek, timeToMinutes, toDateKey,
 } from '../lib/dates';
 import { CapacityAlert } from '../components/CapacityAlert';
 import { ErrorBanner, Loading } from '../components/Feedback';
 import { ScheduleReport } from '../components/ScheduleReport';
 import { SESSION_STATUS_LABELS } from '../lib/labels';
-import { browserTimeZone, summarizeGenerate, summarizeReplan, weekHorizon, type ScheduleSummary } from '../lib/schedule';
+import { browserTimeZone, planningHorizon, summarizeGenerate, summarizeReplan, type ScheduleSummary } from '../lib/schedule';
 import { spanOnDay } from '../lib/sessions';
 import { useLoad } from '../lib/useLoad';
 import { NewSessionModal, SessionModal } from './SessionModals';
@@ -75,6 +75,10 @@ export function CalendarPage() {
     .reduce((sum, s) => sum + s.plannedMinutes, 0);
 
   const openTasks = (tasks.data ?? []).filter((t) => t.status !== 'Completed');
+  const openDeadlines = useMemo(
+    () => openTasks.map((t) => t.deadlineUtc),
+    [tasks.data],
+  );
   const defaultStart = `${toDateKey(days.some((d) => toDateKey(d) === todayKey) ? new Date() : days[0])}T18:00`;
 
   const reloadAll = () => {
@@ -85,7 +89,10 @@ export function CalendarPage() {
     setAdding(false);
   };
 
-  const horizon = weekHorizon(weekStart, new Date());
+  const horizon = useMemo(
+    () => planningHorizon(weekStart, new Date(), openDeadlines),
+    [weekStart, openDeadlines],
+  );
 
   const runSchedule = async (kind: 'generate' | 'replan') => {
     if (!horizon) return;
@@ -93,7 +100,8 @@ export function CalendarPage() {
     if (kind === 'generate') {
       const confirmed = window.confirm(
         'Повторна генерація замінить незакріплені заплановані сесії '
-        + 'в межах вибраного тижня. '
+        + 'на всьому горизонті планування (від обраного тижня до найпізнішого дедлайну '
+        + 'незавершених завдань, не більше 92 днів). '
         + 'Закріплені та завершені сесії залишаться без змін. '
         + 'Продовжити?'
       );
@@ -140,7 +148,7 @@ export function CalendarPage() {
           <button
             className="btn btn-primary"
             disabled={!horizon || scheduling !== null}
-            title="Розставити сесії у вільний час цього тижня. Незакріплені заплановані сесії тижня буде замінено"
+            title="Розставити сесії у вільний час до дедлайнів відкритих завдань (не лише обраний тиждень)"
             onClick={() => runSchedule('generate')}
           >
             {scheduling === 'generate' ? 'Формуємо…' : 'Сформувати розклад'}
@@ -224,30 +232,42 @@ export function CalendarPage() {
                         className={`slot ${info.source === 'CustomHours' ? 'slot-custom' : ''}`}
                         style={{ top: offset(s), height: ((e - s) / 60) * HOUR_PX }}
                         title={`${interval.startTime.slice(0, 5)}–${interval.endTime.slice(0, 5)}`}
-                      >
-                        {interval.startTime.slice(0, 5)}–{interval.endTime.slice(0, 5)}
-                      </div>
+                      />
                     );
                   })}
                   {(sessions.data ?? []).map((session) => {
                     const span = spanOnDay(session.startAtUtc, session.endAtUtc, day);
                     if (!span) return null;
                     const color = colorOf(session.disciplineId);
+                    const pxHeight = Math.max(((span.end - span.start) / 60) * HOUR_PX - 1, 16);
+                    const timeLabel = `${minutesToClock(span.start)}–${minutesToClock(span.end)}`;
+                    const title = session.taskTitle.trim();
+                    const locked = session.isLocked ? '🔒 ' : '';
+                    const layout = pxHeight < 26 ? 'tiny' : pxHeight < 46 ? 'short' : 'full';
                     return (
                       <button
                         key={session.id}
                         type="button"
-                        className={`session session-${session.status.toLowerCase()}`}
+                        className={`session session-${session.status.toLowerCase()} session-${layout}`}
                         style={{
                           top: offset(span.start),
-                          height: Math.max(((span.end - span.start) / 60) * HOUR_PX, 18),
+                          height: pxHeight,
                           borderLeftColor: color,
-                          background: `${color}33`,
-                        }}
-                        title={`${session.disciplineName}: ${session.taskTitle} (${SESSION_STATUS_LABELS[session.status]})`}
+                          backgroundColor: `color-mix(in srgb, ${color} 78%, white)`,
+                        } as CSSProperties}
+                        title={`${session.disciplineName}: ${title} · ${timeLabel} (${SESSION_STATUS_LABELS[session.status]})`}
                         onClick={() => setEditing(session)}
                       >
-                        {session.isLocked && '🔒 '}{session.taskTitle}
+                        {layout === 'tiny' && <span className="session-time">{timeLabel}</span>}
+                        {layout === 'short' && (
+                          <span className="session-line">{timeLabel} · {locked}{title}</span>
+                        )}
+                        {layout === 'full' && (
+                          <>
+                            <span className="session-time">{timeLabel}</span>
+                            <span className="session-name">{locked}{title}</span>
+                          </>
+                        )}
                       </button>
                     );
                   })}

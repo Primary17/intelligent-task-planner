@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GeneratedSession, ReplanScheduleResponse } from '../api/types';
-import { scheduleFits, summarizeGenerate, summarizeReplan, weekHorizon, type Names } from './schedule';
+import { addDays } from './dates';
+import { MAX_PLANNING_DAYS, planningHorizon, scheduleFits, summarizeGenerate, summarizeReplan, weekHorizon, type Names } from './schedule';
 
 const names: Names = {
   taskTitle: (id) => ({ a: 'Lab 1', b: 'Essay' }[id]),
@@ -33,6 +34,25 @@ describe('weekHorizon', () => {
   it('returns null for a week that is already over', () => {
     expect(weekHorizon(monday, new Date(2030, 0, 14, 0, 0))).toBeNull();
     expect(weekHorizon(monday, new Date(2030, 0, 20))).toBeNull();
+  });
+});
+
+describe('planningHorizon', () => {
+  const monday = new Date(2030, 0, 7);
+
+  it('extends through the latest open-task deadline', () => {
+    const h = planningHorizon(monday, new Date(2030, 0, 1, 12), [
+      '2030-01-10T18:00:00Z',
+      '2030-01-28T20:00:00Z',
+    ]);
+    expect(h?.to).toBe(new Date('2030-01-28T20:00:00Z').toISOString());
+  });
+
+  it('caps the range at MAX_PLANNING_DAYS from the start', () => {
+    const now = new Date(2030, 0, 1, 12);
+    const far = new Date(2030, 6, 1).toISOString();
+    const h = planningHorizon(monday, now, [far]);
+    expect(h?.to).toBe(addDays(monday, MAX_PLANNING_DAYS).toISOString());
   });
 });
 

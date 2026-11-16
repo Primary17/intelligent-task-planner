@@ -36,11 +36,35 @@ export interface ScheduleSummary {
   conflicts: ConflictItem[];
 }
 
-// The planner does not skip the past, so the horizon starts at "now" for the current week.
-export function weekHorizon(weekStart: Date, now: Date): Horizon | null {
+/** Must match `ScheduleHorizonRules.MaxDays` on the API. */
+export const MAX_PLANNING_DAYS = 92;
+
+/**
+ * Planning horizon for generate/replan: at least the visible week, extended through
+ * the latest open-task deadline (capped at {@link MAX_PLANNING_DAYS}).
+ */
+export function planningHorizon(weekStart: Date, now: Date, taskDeadlinesUtc: string[]): Horizon | null {
   const start = new Date(Math.max(weekStart.getTime(), now.getTime()));
-  const end = addDays(weekStart, 7);
+  let end = addDays(weekStart, 7);
+
+  for (const iso of taskDeadlinesUtc) {
+    const deadline = new Date(iso);
+    if (!Number.isNaN(deadline.getTime()) && deadline > end) {
+      end = deadline;
+    }
+  }
+
+  const cap = addDays(start, MAX_PLANNING_DAYS);
+  if (end > cap) {
+    end = cap;
+  }
+
   return end > start ? { from: start.toISOString(), to: end.toISOString() } : null;
+}
+
+/** Week-only horizon; tests and fallbacks when there are no open tasks. */
+export function weekHorizon(weekStart: Date, now: Date): Horizon | null {
+  return planningHorizon(weekStart, now, []);
 }
 
 const sumMinutes = (sessions: GeneratedSession[]) => sessions.reduce((sum, s) => sum + s.plannedMinutes, 0);
